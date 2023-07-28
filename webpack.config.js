@@ -3,7 +3,7 @@ var HtmlWebpackPlugin = require('html-webpack-plugin');
 const path = require('path');
 
 module.exports = {
-    mode: "production",
+    mode: "development",
     plugins: [new MiniCssExtractPlugin(), new HtmlWebpackPlugin()],
     entry: './src/client/index.js',
     devServer: {

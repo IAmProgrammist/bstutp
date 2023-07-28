@@ -196,32 +196,6 @@ LOCK TABLES `educational_programs_competences` WRITE;
 UNLOCK TABLES;
 
 --
--- Table structure for table `groups`
---
-
-DROP TABLE IF EXISTS `groups`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `groups` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `name` tinytext NOT NULL,
-  `id_direction` int NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `groups_id_direction_idx` (`id_direction`),
-  CONSTRAINT `groups_id_direction` FOREIGN KEY (`id_direction`) REFERENCES `directions` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `groups`
---
-
-LOCK TABLES `groups` WRITE;
-/*!40000 ALTER TABLE `groups` DISABLE KEYS */;
-/*!40000 ALTER TABLE `groups` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `indicators`
 --
 
@@ -418,7 +392,7 @@ CREATE TABLE `students` (
   `report_card_id` int NOT NULL,
   UNIQUE KEY `id_UNIQUE` (`id_user`),
   KEY `students_id_group_idx` (`id_group`),
-  CONSTRAINT `students_id_group` FOREIGN KEY (`id_group`) REFERENCES `groups` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `students_id_group` FOREIGN KEY (`id_group`) REFERENCES `teaching_groups` (`id`) ON DELETE SET NULL,
   CONSTRAINT `students_id_user` FOREIGN KEY (`id_user`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -445,10 +419,13 @@ CREATE TABLE `tasks` (
   `order` int NOT NULL DEFAULT '0',
   `task_type` int NOT NULL,
   `description` text NOT NULL,
+  `id_owner` int DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id_UNIQUE` (`id`),
   KEY `tasks_id_test_tests_id_idx` (`id_test`),
   KEY `tasks_task_type_tasks_types_id_idx` (`task_type`),
+  KEY `tasks_id_owner_idx` (`id_owner`),
+  CONSTRAINT `tasks_id_owner` FOREIGN KEY (`id_owner`) REFERENCES `users` (`id`) ON DELETE SET NULL,
   CONSTRAINT `tasks_id_test_tests_id` FOREIGN KEY (`id_test`) REFERENCES `tests` (`id`) ON DELETE CASCADE,
   CONSTRAINT `tasks_task_type_tasks_types_id` FOREIGN KEY (`task_type`) REFERENCES `tasks_types` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -665,6 +642,32 @@ LOCK TABLES `teacher_status` WRITE;
 UNLOCK TABLES;
 
 --
+-- Table structure for table `teaching_groups`
+--
+
+DROP TABLE IF EXISTS `teaching_groups`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `teaching_groups` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `name` tinytext NOT NULL,
+  `id_direction` int NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `groups_id_direction_idx` (`id_direction`),
+  CONSTRAINT `groups_id_direction` FOREIGN KEY (`id_direction`) REFERENCES `directions` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `teaching_groups`
+--
+
+LOCK TABLES `teaching_groups` WRITE;
+/*!40000 ALTER TABLE `teaching_groups` DISABLE KEYS */;
+/*!40000 ALTER TABLE `teaching_groups` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `tests`
 --
 
@@ -675,8 +678,12 @@ CREATE TABLE `tests` (
   `id` int NOT NULL AUTO_INCREMENT,
   `time` bigint NOT NULL,
   `is_draft` tinyint NOT NULL DEFAULT '0',
+  `id_owner` int NOT NULL,
+  `name` tinytext NOT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `code_UNIQUE` (`id`)
+  UNIQUE KEY `code_UNIQUE` (`id`),
+  KEY `tests_id_owner_idx` (`id_owner`),
+  CONSTRAINT `tests_id_owner` FOREIGN KEY (`id_owner`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -753,7 +760,7 @@ CREATE TABLE `tests_groups` (
   `id_group` int NOT NULL,
   KEY `tests_groups_id_test_idx` (`id_test`),
   KEY `tests_groups_id_group_groups_id_idx` (`id_group`),
-  CONSTRAINT `tests_groups_id_group_groups_id` FOREIGN KEY (`id_group`) REFERENCES `groups` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `tests_groups_id_group_groups_id` FOREIGN KEY (`id_group`) REFERENCES `teaching_groups` (`id`) ON DELETE CASCADE,
   CONSTRAINT `tests_groups_id_test` FOREIGN KEY (`id_test`) REFERENCES `tests` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -829,4 +836,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2023-07-28 21:18:38
+-- Dump completed on 2023-07-29  0:43:59

@@ -10,6 +10,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import ru.ultrabasic.bstutp.Config;
 import ru.ultrabasic.bstutp.data.SQLHandler;
+import ru.ultrabasic.bstutp.data.models.UserTypes;
 import ru.ultrabasic.bstutp.messages.errors.DatabaseError;
 import ru.ultrabasic.bstutp.messages.errors.JSONError;
 import ru.ultrabasic.bstutp.messages.errors.LoginUserDoesntExists;
@@ -22,7 +23,7 @@ import java.util.stream.Collectors;
 @WebServlet("/api/account/login")
 public class Login extends HttpServlet {
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         try {
             JSONObject jsonUpdate = new JSONObject(req.getReader().lines().collect(Collectors.joining(System.lineSeparator())));
             String login = jsonUpdate.has("login") ? jsonUpdate.getString("login") : "";
@@ -34,10 +35,13 @@ public class Login extends HttpServlet {
                 String sessionKey = SQLHandler.createSessionKey(id, rememberMe);
 
                 Cookie cookie = new Cookie("sessionKey", sessionKey);
-                cookie.setMaxAge(rememberMe ? Config.SESSION_KEY_EXPIRATION_YEARS * 365 * 60 * 60 : 0);
-                cookie.setSecure(true);
+                cookie.setMaxAge(rememberMe ? (int) (Config.SESSION_KEY_EXPIRATION_YEARS * 365 * 60 * 60) : 0);
+                cookie.setSecure(false);
+                cookie.setPath("/");
 
-                new LoginSuccess().writeToResponse(resp, cookie);
+                UserTypes userType = SQLHandler.getUserType(id);
+
+                new LoginSuccess().writeToResponse(resp, cookie, userType);
             } else {
                 new LoginUserDoesntExists().writeToResponse(resp);
             }
