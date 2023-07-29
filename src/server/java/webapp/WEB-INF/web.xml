@@ -8,7 +8,25 @@
     <welcome-file-list>
         <welcome-file>index.html</welcome-file>
     </welcome-file-list>
-    
+
+    <servlet>
+        <servlet-name>loginpage</servlet-name>
+        <jsp-file>/index.html</jsp-file>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>loginpage</servlet-name>
+        <url-pattern>/login</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>testspage</servlet-name>
+        <jsp-file>/index.html</jsp-file>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>testspage</servlet-name>
+        <url-pattern>/records</url-pattern>
+    </servlet-mapping>
+
     <jsp-config>
         <jsp-property-group>
             <url-pattern>*.jsp</url-pattern>
