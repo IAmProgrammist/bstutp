@@ -67,19 +67,3 @@
     margin-right: auto;
 }
 
-.button {
-    border-radius: 20px;
-    padding: 10px;
-    color: #24292e;
-    background-color: white;
-    border-color: #24292e;
-    border-width: 1px;
-
-    transition: all 0.2s;
-}
-
-.button:hover {
-    color: white;
-    background-color: dodgerblue;
-    border-color: white;
-}

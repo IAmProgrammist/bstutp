@@ -2,11 +2,12 @@ package ru.ultrabasic.bstutp.data;
 
 import ru.ultrabasic.bstutp.Config;
 import ru.ultrabasic.bstutp.data.models.TestShort;
+import ru.ultrabasic.bstutp.data.models.UserInfo;
 import ru.ultrabasic.bstutp.data.models.UserTypes;
-import ru.ultrabasic.bstutp.sql.DirectionsRow;
-import ru.ultrabasic.bstutp.sql.DirectionsRowFullData;
-import ru.ultrabasic.bstutp.sql.Task;
-import ru.ultrabasic.bstutp.sql.Test;
+import ru.ultrabasic.bstutp.data.models.DirectionsRow;
+import ru.ultrabasic.bstutp.data.models.DirectionsRowFullData;
+import ru.ultrabasic.bstutp.data.models.Task;
+import ru.ultrabasic.bstutp.data.models.Test;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -171,7 +172,6 @@ public class SQLHandler {
                         INNER JOIN tests_disciplines ON tests_disciplines.id_test = tests.id\s
                         INNER JOIN discipline ON tests_disciplines.id_discipline = discipline.id\s
                         INNER JOIN reports ON tests.id = reports.id_test\s
-                        WHERE users.id='%d' AND reports.id IS NULL';
                         WHERE users.id='%d' AND reports.id IS NULL AND tests.is_draft=0
                                 """.formatted(userId)
                 ));
@@ -356,11 +356,12 @@ public class SQLHandler {
     public DirectionsRowFullData getDirectionFullData(int id) throws SQLException {
         ResultSet direction = statementExecuteQuery("SELECT * FROM directions WHERE id=%d LIMIT 1;"
                 .formatted(id));
-        ResultSet
-        return; new DirectionsRowFullData(
-                direction.getString("id"),
+        //ResultSet
+        //return; new DirectionsRowFullData(
+        //        direction.getString("id"),
 // TODO: 29.07.2023 дописать
-                );
+        //        );
+        return null;
     }
 
 //    public void addTeacher(int login, int password) throws SQLException {
@@ -376,4 +377,17 @@ public class SQLHandler {
 //                        .formatted(login, password)
 //        );
 //    }
+
+    public static UserInfo getUserInfo(int userId) throws SQLException {
+        ResultSet rs = connection.createStatement()
+                .executeQuery(("""
+                        SELECT name, surname, patronymic, user_type FROM users WHERE id=%d
+                                """.formatted(userId)
+                ));
+
+        if (rs.next())
+            return new UserInfo(userId, rs.getString(1), rs.getString(2), rs.getString(3), rs.getInt(4));
+
+        return null;
+    }
 }

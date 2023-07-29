@@ -50,6 +50,7 @@ DROP TABLE IF EXISTS `competence`;
 CREATE TABLE `competence` (
   `id` int NOT NULL,
   `name` text NOT NULL,
+  `description` text NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -337,6 +338,7 @@ CREATE TABLE `reports` (
   `id` int NOT NULL AUTO_INCREMENT,
   `id_student` int NOT NULL,
   `id_test` int NOT NULL,
+  `completion_time` bigint NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -385,9 +387,6 @@ DROP TABLE IF EXISTS `students`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `students` (
   `id_user` int NOT NULL,
-  `name` tinytext NOT NULL,
-  `surname` tinytext NOT NULL,
-  `patronymic` tinytext,
   `id_group` int DEFAULT NULL,
   `report_card_id` int NOT NULL,
   UNIQUE KEY `id_UNIQUE` (`id_user`),
@@ -598,9 +597,6 @@ DROP TABLE IF EXISTS `teacher`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `teacher` (
   `id_user` int NOT NULL,
-  `name` text NOT NULL,
-  `surname` text NOT NULL,
-  `patronymic` text,
   `status` int DEFAULT NULL,
   UNIQUE KEY `id_UNIQUE` (`id_user`),
   KEY `teacher_status_teacher_status_id_idx` (`status`),
@@ -811,6 +807,9 @@ CREATE TABLE `users` (
   `login` varchar(45) NOT NULL,
   `password` varchar(45) NOT NULL,
   `user_type` int NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `surname` varchar(100) NOT NULL,
+  `patronymic` varchar(100) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `login_UNIQUE` (`login`),
   KEY `users_user_type_idx` (`user_type`),
@@ -836,4 +835,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2023-07-29  0:43:59
+-- Dump completed on 2023-07-29 13:48:05

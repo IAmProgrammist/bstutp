@@ -34,14 +34,18 @@ public class Login extends HttpServlet {
             if ((id = SQLHandler.getUserId(login, password)) != null) {
                 String sessionKey = SQLHandler.createSessionKey(id, rememberMe);
 
-                Cookie cookie = new Cookie("sessionKey", sessionKey);
-                cookie.setMaxAge(rememberMe ? (int) (Config.SESSION_KEY_EXPIRATION_YEARS * 365 * 60 * 60) : 0);
-                cookie.setSecure(false);
-                cookie.setPath("/");
+                Cookie ck = new Cookie("sessionKey", sessionKey);
+                ck.setSecure(true);
+
+                ck.setPath("/");
+                if (rememberMe)
+                    ck.setMaxAge(((int)(Config.SESSION_KEY_EXPIRATION_YEARS)) * 365 * 24 * 60 * 60);
+
+                resp.addCookie(ck);
 
                 UserTypes userType = SQLHandler.getUserType(id);
 
-                new LoginSuccess().writeToResponse(resp, cookie, userType);
+                new LoginSuccess().writeToResponse(resp, userType);
             } else {
                 new LoginUserDoesntExists().writeToResponse(resp);
             }

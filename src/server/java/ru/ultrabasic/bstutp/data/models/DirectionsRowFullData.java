@@ -1,4 +1,4 @@
-package ru.ultrabasic.bstutp.sql;
+package ru.ultrabasic.bstutp.data.models;
 
 public class DirectionsRowFullData extends DirectionsRow{
     private int idLevel;
