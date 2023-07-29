@@ -5,6 +5,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import ru.ultrabasic.bstutp.data.SQLHandler;
 import ru.ultrabasic.bstutp.data.models.Task;
+import ru.ultrabasic.bstutp.data.models.TaskTypes;
 import ru.ultrabasic.bstutp.data.models.Test;
 
 import java.io.IOException;
@@ -28,7 +29,7 @@ public class TestRunner {
 
     public void startTest() throws SQLException, IOException, InterruptedException {
         SQLHandler sqlHandler = new SQLHandler();
-        Test test = sqlHandler.getTest(idTest);
+        Test test = sqlHandler.getTestWithQuestions(idTest);
 
         // создание json объекта
         JSONObject jsonObject = new JSONObject();
@@ -38,7 +39,7 @@ public class TestRunner {
         for (Task task : test.getTasks()) {
             jsonObjectSub.put("taskType", task.getTaskType());
             jsonObjectSub.put("description", task.getDescription());
-            if (task.getTaskType() == 0) {
+            if (task.getTaskType() == TaskTypes.ONE_IN_MANY) {
                 JSONArray jsonTaskQuestions = new JSONArray();
                 for (String taskQuestion : task.getTaskQuestions())
                     jsonTaskQuestions.put(taskQuestion);

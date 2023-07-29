@@ -1,21 +1,22 @@
 package ru.ultrabasic.bstutp.data.models;
 
-import java.util.ArrayList;
-
-public class Task {
+public class TasksRow {
+    private int idTest;
     private int order;
     private TaskTypes taskType;
     private String description;
-    private ArrayList<String> taskQuestions;
+    private int idOwner;
 
-    public Task(int order, TaskTypes taskType, String description, ArrayList<String> taskQuestions) {
+    public TasksRow(int idTest, int order, TaskTypes taskType, String description, int idOwner) {
+        this.idTest = idTest;
         this.order = order;
         this.taskType = taskType;
         this.description = description;
-        this.taskQuestions = taskQuestions;
+        this.idOwner = idOwner;
     }
 
-    public Task() {
+    public int getIdTest() {
+        return idTest;
     }
 
     public int getOrder() {
@@ -30,7 +31,7 @@ public class Task {
         return description;
     }
 
-    public ArrayList<String> getTaskQuestions() {
-        return taskQuestions;
+    public int getIdOwner() {
+        return idOwner;
     }
 }

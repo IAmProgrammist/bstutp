@@ -22,12 +22,12 @@ public class Test {
         return time;
     }
 
-    public ArrayList<Task> getTasks() {
-        return tasks;
-    }
-
     public void setTime(int time) {
         this.time = time;
+    }
+
+    public ArrayList<Task> getTasks() {
+        return tasks;
     }
 
     public void setTasks(ArrayList<Task> tasks) {
