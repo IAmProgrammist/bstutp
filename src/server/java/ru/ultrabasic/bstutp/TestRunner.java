@@ -4,7 +4,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import ru.ultrabasic.bstutp.data.SQLHandler;
-import ru.ultrabasic.bstutp.data.models.Task;
+import ru.ultrabasic.bstutp.data.models.tasks.Task;
 import ru.ultrabasic.bstutp.data.models.Test;
 
 import java.io.IOException;
@@ -26,7 +26,8 @@ public class TestRunner {
         this.resp = resp;
     }
 
-    public void startTest() throws SQLException, IOException, InterruptedException {
+    // TODO: наработки по хранению теста в ОЗУ
+    /*public void startTest() throws SQLException, IOException, InterruptedException {
         SQLHandler sqlHandler = new SQLHandler();
         Test test = sqlHandler.getTest(idTest);
 
@@ -62,7 +63,7 @@ public class TestRunner {
         }, test.getTime());
 //        Thread.sleep(test.getTime());
 
-    }
+    }*/
 
     static private Map<String, String> eventMapWithSolution = new HashMap<>(20);
     private void endTest() {

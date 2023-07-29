@@ -13,10 +13,11 @@ public class TestDataMessage extends Message {
         super("test_data", MessageCodes.OK);
     }
 
-    public void writeToResponse(HttpServletResponse response, JSONObject testData) throws IOException {
+    public void writeToResponse(HttpServletResponse response, JSONObject testData, UserInfo userInfo) throws IOException {
         response.setStatus(code.code);
 
         testData.put("type", type);
+        testData.put("userInfo", userInfo.getJSONObject());
 
         response.getWriter().println(testData);
     }

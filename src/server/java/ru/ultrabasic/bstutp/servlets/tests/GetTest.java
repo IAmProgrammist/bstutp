@@ -46,7 +46,7 @@ public class GetTest extends HttpServlet {
                 new TestNoAccess().writeToResponse(resp);
             }
 
-            new TestDataMessage().writeToResponse(resp, data);
+            new TestDataMessage().writeToResponse(resp, data, userInfo);
         } catch (SQLException e) {
             new DatabaseError().writeToResponse(resp);
         } catch (JSONException e) {

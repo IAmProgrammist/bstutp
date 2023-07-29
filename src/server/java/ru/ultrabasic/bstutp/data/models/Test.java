@@ -1,36 +1,39 @@
 package ru.ultrabasic.bstutp.data.models;
 
-import java.util.ArrayList;
+import lombok.AllArgsConstructor;
+import lombok.Value;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import ru.ultrabasic.bstutp.data.models.tasks.Task;
 
+import java.util.List;
+
+@AllArgsConstructor
 public class Test {
-    private int time;
-    private ArrayList<Task> tasks;
+    public int id;
+    public Long time;
+    public String discipline;
+    public boolean isDraft;
+    public Integer idOwner;
+    public String name;
+    public List<Task> tasks;
+    public double result;
+    public boolean completed;
+    public JSONObject getJSONObject() {
+        JSONObject object = new JSONObject();
+        object.put("id", id);
+        object.put("name", name);
+        object.put("duration", time);
+        object.put("discipline", discipline);
+        object.put("result", result);
+        object.put("completed", completed);
 
-    public Test(int time, ArrayList<Task> tasks) {
-        this.time = time;
-        this.tasks = tasks;
-    }
+        JSONArray tasksJSON = new JSONArray();
+        for (Task t : tasks)
+            tasksJSON.put(t.getJSONObject());
 
-    public Test(int time) {
-        this.time = time;
-    }
+        object.put("tasks", tasksJSON);
 
-    public Test() {
-    }
-
-    public int getTime() {
-        return time;
-    }
-
-    public ArrayList<Task> getTasks() {
-        return tasks;
-    }
-
-    public void setTime(int time) {
-        this.time = time;
-    }
-
-    public void setTasks(ArrayList<Task> tasks) {
-        this.tasks = tasks;
+        return object;
     }
 }
