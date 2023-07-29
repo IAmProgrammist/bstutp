@@ -9,9 +9,12 @@ import ru.ultrabasic.bstutp.sql.Test;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Timer;
 import java.util.TimerTask;
 
-public class TestRunner extends TimerTask {
+public class TestRunner {
     private int time;
     private String sessionKey;
     private int idTest;
@@ -23,7 +26,7 @@ public class TestRunner extends TimerTask {
         this.resp = resp;
     }
 
-    private void startTest() throws SQLException, IOException, InterruptedException {
+    public void startTest() throws SQLException, IOException, InterruptedException {
         SQLHandler sqlHandler = new SQLHandler();
         Test test = sqlHandler.getTest(idTest);
 
@@ -48,19 +51,21 @@ public class TestRunner extends TimerTask {
         resp.setContentType("application/json");
         resp.getWriter().print(jsonObject);
 
-        Thread.sleep(test.getTime());
+        eventMapWithSolution.put(sessionKey, "start_test");
 
-        Thread.
+        Timer runTimer = new Timer();
+        runTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+
+            }
+        }, test.getTime());
+//        Thread.sleep(test.getTime());
 
     }
 
-    @Override
-    public void run() {
-        try {
+    static private Map<String, String> eventMapWithSolution = new HashMap<>(20);
+    private void endTest() {
 
-
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
     }
 }

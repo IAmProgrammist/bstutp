@@ -37,7 +37,7 @@ public class SQLHandler {
 
 
         ResultSet tasks = connection.createStatement().executeQuery(
-                "SELECT id, order, task_type, description FROM main_db.tasks WHERE id_test=%d;"
+                "SELECT id, order, task_type, description FROM main_db.tasks ORDERED BY order WHERE id_test=%d;"
                         .formatted(idTest));
 
         Test test = new Test(time.getInt(1));
