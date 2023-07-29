@@ -1,0 +1,30 @@
+.test .container {
+    display: block;
+}
+
+.test__available_title, .test__available_sub {
+    text-align: center;
+}
+
+.test__available_title {
+    font-size: 60px;
+    margin-bottom: 5px;
+    color: #24292e;
+    font-weight: bold;
+}
+
+.test__available_sub {
+    font-size: 26px;
+    color: dimgrey;
+    margin-bottom: 10px;
+}
+
+.test__available_button {
+    width: 100px;
+    margin: 0 auto;
+    display: block;
+}
+
+.test {
+    margin-top: 50px;
+}

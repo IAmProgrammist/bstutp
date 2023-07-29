@@ -2,6 +2,7 @@ import React from 'react';
 import {connect} from "react-redux";
 import * as LoginFuncs from "../slices/loginReducer"
 import * as MainlistFuncs from "../slices/mainListReducer"
+import * as TestFuncs from "../slices/testReducer"
 import {Route, BrowserRouter as Router, Routes} from "react-router-dom";
 import LoginRegisterScreen from "./LoginRegisterScreen";
 import style from '../assets/root.css'
@@ -9,10 +10,11 @@ import FetchScreen from "../elements/FetchScreen";
 import {setErrorMail, setErrorPassword} from "../slices/loginReducer";
 import Header from "../elements/Header";
 import List from "./List";
+import Test from "./Test"
 
 let App = props => {
     return <div>
-        <FetchScreen isFetching={props.loginData.isFetching || props.mainlistData.isFetching}/>
+        <FetchScreen isFetching={props.loginData.isFetching || props.mainlistData.isFetching || props.testData.isFetching}/>
         <Router>
             <Routes>
                 <Route exact path="/" element={<Header showBackButton={true} showAddButton={true} showExportButton={true}
@@ -21,14 +23,23 @@ let App = props => {
                 <Route exact path="/login" element={<div className="container">
                     <LoginRegisterScreen
                         loginData={props.loginData}
-                        loginFuncs={props.loginFuncs}/>
+                        loginFuncs={props.loginFuncs}
+                        setListFetching={props.mainlistFuncs.setListFetching}
+                        setListData={props.mainlistFuncs.setListData}/>
                 </div>}/>
                 <Route exact path="/tests" element={
                     <List
                         mainlistData={props.mainlistData}
                         mainlistFuncs={props.mainlistFuncs}
-                        setListFetching={props.mainlistFuncs.setListFetching}
-                        setListData={props.mainlistFuncs.setListData}/>
+                        setTestData={props.testFuncs.setTestData}
+                        />
+                }/>
+                <Route exact path="/test" element={
+                    <Test
+                        testData={props.testData}
+                        testFuncs={props.testFuncs}
+                        mainlistData={props.mainlistData}
+                        />
                 }/>
             </Routes>
         </Router>
@@ -39,7 +50,8 @@ let App = props => {
 let mapStateToProps = (state) => {
     return {
         loginData: state.login,
-        mainlistData: state.mainlist
+        mainlistData: state.mainlist,
+        testData: state.test
     }
 }
 
@@ -55,6 +67,11 @@ let mapDispatchToProps = (dispatch) => {
         mainlistFuncs: {
             setListFetching: (ev) => dispatch(MainlistFuncs.setListFetching(ev)),
             setListData: (data) => dispatch(MainlistFuncs.setListData(data))
+        },
+        testFuncs: {
+            setTestData: (ev) => dispatch(TestFuncs.setTestData(ev)),
+            setTestFetching: (fetching) => dispatch(TestFuncs.setTestFetching(fetching)),
+            setTestAnswer: (setAnswer) => dispatch(TestFuncs.setTestAnswer(setAnswer))
         }
     }
 }
