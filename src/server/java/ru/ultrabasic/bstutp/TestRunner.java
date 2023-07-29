@@ -3,7 +3,7 @@ package ru.ultrabasic.bstutp;
 import jakarta.servlet.http.HttpServletResponse;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import ru.ultrabasic.bstutp.sql.SQLHandler;
+import ru.ultrabasic.bstutp.data.SQLHandler;
 import ru.ultrabasic.bstutp.sql.Task;
 import ru.ultrabasic.bstutp.sql.Test;
 

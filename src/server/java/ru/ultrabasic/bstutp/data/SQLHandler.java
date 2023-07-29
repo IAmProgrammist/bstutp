@@ -3,6 +3,10 @@ package ru.ultrabasic.bstutp.data;
 import ru.ultrabasic.bstutp.Config;
 import ru.ultrabasic.bstutp.data.models.TestShort;
 import ru.ultrabasic.bstutp.data.models.UserTypes;
+import ru.ultrabasic.bstutp.sql.DirectionsRow;
+import ru.ultrabasic.bstutp.sql.DirectionsRowFullData;
+import ru.ultrabasic.bstutp.sql.Task;
+import ru.ultrabasic.bstutp.sql.Test;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -38,7 +42,7 @@ public class SQLHandler {
 
     public static Integer getUserId(String login, String password) throws SQLException {
         ResultSet rs = connection.createStatement()
-                .executeQuery("SELECT users.id FROM users WHERE login='%s' AND password='%s'".formatted(login, password));
+                .executeQuery("SELECT users.id FROM users WHERE login='%s' AND password='%s';".formatted(login, password));
 
         if (rs.next()) {
             return rs.getInt("id");
@@ -51,7 +55,7 @@ public class SQLHandler {
         String sessionKey = UUID.randomUUID().toString();
 
         connection.createStatement()
-                .executeUpdate("INSERT INTO session_keys(id, id_user, expiration) VALUES ('%s', %d, %d)"
+                .executeUpdate("INSERT INTO session_keys(id, id_user, expiration) VALUES ('%s', %d, %d);"
                         .formatted(sessionKey, userId,
                                 new Date().getTime() + Config.SESSION_KEY_EXPIRATION_YEARS * 365 * 24 * 60 * 60 * 1000));
 
@@ -60,7 +64,7 @@ public class SQLHandler {
 
     public static Integer getUserIdBySessionKey(String sessionKey) throws SQLException {
         ResultSet rs = connection.createStatement()
-                .executeQuery("SELECT id_user, expiration FROM session_keys WHERE id='%s'"
+                .executeQuery("SELECT id_user, expiration FROM session_keys WHERE id='%s';"
                         .formatted(sessionKey));
 
         if (rs.next()) {
@@ -70,14 +74,14 @@ public class SQLHandler {
             if (expiration < new Date().getTime() + Config.SESSION_KEY_EXPIRATION_YEARS * 365 * 24 * 60 * 60 * 1000) {
                 // TODO: добавить ивент на очищение истечённых sessionKey в MySQL
                 connection.createStatement()
-                        .executeUpdate("UPDATE session_keys SET expiration = %d WHERE id='%s'"
+                        .executeUpdate("UPDATE session_keys SET expiration = %d WHERE id='%s';"
                                 .formatted(
                                         new Date().getTime() + Config.SESSION_KEY_EXPIRATION_YEARS * 365 * 24 * 60 * 60 * 1000, sessionKey));
 
                 return userId;
             } else {
                 connection.createStatement()
-                        .executeUpdate("DELETE FROM session_keys WHERE id='%s'"
+                        .executeUpdate("DELETE FROM session_keys WHERE id='%s';"
                                 .formatted(sessionKey));
             }
         }
@@ -88,7 +92,7 @@ public class SQLHandler {
     public static UserTypes getUserType(int userId) throws SQLException {
         ResultSet rs = connection.createStatement()
                 .executeQuery(("SELECT user_types.id FROM users INNER JOIN user_types ON user_types.id = users.user_type " +
-                        "WHERE users.id='%d'").formatted(userId));
+                        "WHERE users.id='%d';").formatted(userId));
 
         if (rs.next())
             return UserTypes.fromID(rs.getInt("id"));
@@ -143,7 +147,7 @@ public class SQLHandler {
                         INNER JOIN tests_disciplines ON tests_disciplines.id_test = tests.id\s
                         INNER JOIN discipline ON tests_disciplines.id_discipline = discipline.id\s
                         INNER JOIN reports ON tests.id = reports.id_test\s
-                        WHERE users.id='%d'
+                        WHERE users.id='%d';
                                 """.formatted(userId)
                 ));
 
@@ -167,7 +171,7 @@ public class SQLHandler {
                         INNER JOIN tests_disciplines ON tests_disciplines.id_test = tests.id\s
                         INNER JOIN discipline ON tests_disciplines.id_discipline = discipline.id\s
                         INNER JOIN reports ON tests.id = reports.id_test\s
-                        WHERE users.id='%d' AND reports.id IS NULL'
+                        WHERE users.id='%d' AND reports.id IS NULL';
                                 """.formatted(userId)
                 ));
 
@@ -179,4 +183,154 @@ public class SQLHandler {
 
         return tests;
     }
+
+    public Test getTest(int idTest) throws SQLException {
+        ResultSet time = connection.createStatement().executeQuery(
+                "SELECT time FROM tests WHERE id=%d LIMIT 1;"
+                        .formatted(idTest));
+        time.next();
+
+
+        ResultSet tasks = connection.createStatement().executeQuery(
+                "SELECT id, order, task_type, description FROM tasks ORDERED BY order WHERE id_test=%d;"
+                        .formatted(idTest));
+
+        Test test = new Test(time.getInt(1));
+        ArrayList<Task> taskArray = new ArrayList<>();
+        while (tasks.next()) {
+            ArrayList<String> taskQuestions = null;
+            if (tasks.getInt("task_type") == 0)
+                taskQuestions = getTaskQuestionsOneInMany(tasks.getInt("id"));
+
+            taskArray.add(new Task(
+                    tasks.getInt("order"),
+                    tasks.getInt("task_type"),
+                    tasks.getString("description"),
+                    taskQuestions
+            ));
+        }
+
+        test.setTasks(taskArray);
+
+        return test;
+    }
+
+    public ArrayList<String> getTaskQuestionsOneInMany(int idTask) throws SQLException {
+        ResultSet id_questions = connection.createStatement().executeQuery(
+                "SELECT id_question FROM tasks_one_in_many_task_questions WHERE id_task=%d;"
+                        .formatted(idTask));
+
+        ArrayList<String> taskQuestions = new ArrayList<>(4);
+        while (id_questions.next()) {
+            ResultSet text = connection.createStatement().executeQuery(
+                    "SELECT text FROM tasks_one_in_many_questions_bank WHERE id=%d LIMIT 1;"
+                            .formatted(id_questions.getInt(1)));
+            text.next();
+            taskQuestions.add(text.getString(1));
+        }
+
+        return taskQuestions;
+    }
+
+    public String getAnswerOneInMany(int idTask) throws SQLException {
+        ResultSet id_answer_correct = connection.createStatement().executeQuery(
+                "SELECT id_answer_correct FROM tasks_one_in_many WHERE id=%d LIMIT 1;"
+                        .formatted(idTask));
+        id_answer_correct.next();
+
+        ResultSet answer_correct = connection.createStatement().executeQuery(
+                "SELECT text FROM tasks_one_in_many_questions_bank WHERE id=%d LIMIT 1;"
+                        .formatted(id_answer_correct.getInt(1)));
+        answer_correct.next();
+
+        return answer_correct.getString(1);
+    }
+
+    public String getAnswerText(int idTask) throws SQLException {
+        ResultSet answer_correct = connection.createStatement().executeQuery(
+                "SELECT answer_correct FROM tasks_text WHERE id=%d LIMIT 1;"
+                        .formatted(idTask));
+        answer_correct.next();
+
+        return answer_correct.getString(1);
+    }
+
+    private int getLastInsertId() throws SQLException {
+        return getOneRowExecuteQuery("SELECT LAST_INSERT_ID();").getInt(1);
+    }
+
+    private ResultSet getOneRowExecuteQuery(String sql) throws SQLException {
+        ResultSet rs = connection.createStatement().executeQuery(sql);
+        rs.next();
+
+        return rs;
+    }
+
+    private void statementExecute(String sql) throws SQLException {
+        connection.createStatement().execute(sql);
+    }
+
+    private ResultSet statementExecuteQuery(String sql) throws SQLException {
+        return connection.createStatement().executeQuery(sql);
+    }
+
+    public void addDirection(DirectionsRow direction, int idLevelType, int idEducationalPrograms) throws SQLException {
+        statementExecute(
+                ("INSERT INTO directions (id_level, espf_code, espf_name, code, name, id_educational_program) " +
+                        "VALUES (%d, '%s', '%s','%s','%s', %d);").formatted(
+                        idLevelType, direction.getEspfCode(), direction.getEspfName(),
+                        direction.getCode(), direction.getName(), idEducationalPrograms)
+        );
+    }
+
+    public void delDirection(int id_direction) throws SQLException {
+        statementExecute("DELETE FROM directions WHERE id=%d;".formatted(id_direction));
+    }
+
+    public void updateDirectionAll(int idDirections, DirectionsRow direction, int idLevelType, int idEducationalPrograms) throws SQLException {
+        statementExecute(("UPDATE directions SET id_level=%d, espf_code='%s', espf_name='%s', code='%s', name='%s', " +
+                "id_educational_program=%d WHERE id=%d;").formatted(idLevelType, direction.getEspfCode(),
+                direction.getEspfName(), direction.getCode(), direction.getName(), idEducationalPrograms, idDirections));
+    }
+
+    public void updateDirectionIdEducationalProgram(int idDirections, DirectionsRow direction, int idEducationalProgram) throws SQLException {
+        statementExecute(("UPDATE directions SET espf_code='%s', espf_name='%s', code='%s', name='%s', " +
+                "id_educational_program=%d WHERE id=%d;").formatted(direction.getEspfCode(),
+                direction.getEspfName(), direction.getCode(), direction.getName(), idEducationalProgram, idDirections));
+    }
+    public void updateDirectionIdLevelType(int idDirections, DirectionsRow direction, int idLevelType) throws SQLException {
+        statementExecute(("UPDATE directions SET id_level=%d, espf_code='%s', espf_name='%s', code='%s', name='%s', " +
+                "WHERE id=%d;").formatted(idLevelType, direction.getEspfCode(),
+                direction.getEspfName(), direction.getCode(), direction.getName(), idDirections));
+    }
+
+    public void updateDirection(int idDirections, DirectionsRow direction) throws SQLException {
+        statementExecute(("UPDATE directions SET espf_code='%s', espf_name='%s', code='%s', name='%s', WHERE id=%d;")
+                .formatted(direction.getEspfCode(), direction.getEspfName(), direction.getCode(), direction.getName(),
+                        idDirections));
+    }
+
+    public DirectionsRowFullData getDirectionFullData(int id) throws SQLException {
+        ResultSet direction = statementExecuteQuery("SELECT * FROM directions WHERE id=%d LIMIT 1;"
+                .formatted(id));
+        ResultSet
+        return; new DirectionsRowFullData(
+                direction.getString("id"),
+// TODO: 29.07.2023 дописать
+                );
+    }
+
+//    public void addTeacher(int login, int password) throws SQLException {
+//        connection.createStatement().execute(
+//                "INSERT INTO users (login, password, user_type) VALUES ('%s', '%s', 1)"
+//                        .formatted(login, password)
+//        );
+//
+//        int id_new_user = getLastInsertId();
+//
+//        connection.createStatement().execute(
+//                "INSERT INTO users (login, password, user_type) VALUES ('%s', '%s', 1)"
+//                        .formatted(login, password)
+//        );
+//    }
 }
