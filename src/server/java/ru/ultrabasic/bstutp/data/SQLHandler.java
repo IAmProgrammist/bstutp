@@ -2,12 +2,6 @@ package ru.ultrabasic.bstutp.data;
 
 import ru.ultrabasic.bstutp.Config;
 import ru.ultrabasic.bstutp.data.models.*;
-import ru.ultrabasic.bstutp.data.models.TestShort;
-import ru.ultrabasic.bstutp.data.models.UserInfo;
-import ru.ultrabasic.bstutp.data.models.UserTypes;
-import ru.ultrabasic.bstutp.data.models.DirectionsRow;
-import ru.ultrabasic.bstutp.data.models.Task;
-import ru.ultrabasic.bstutp.data.models.Test;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -296,6 +290,38 @@ public class SQLHandler {
         return false;
     }
 
+    private static int getLastInsertId() throws SQLException {
+        return getOneRowExecuteQuery("SELECT LAST_INSERT_ID();").getInt(1);
+    }
+
+    private static ResultSet getOneRowExecuteQuery(String sql) throws SQLException {
+        ResultSet rs = connection.createStatement().executeQuery(sql);
+        rs.next();
+
+        return rs;
+    }
+
+    private static void statementExecute(String sql) throws SQLException {
+        connection.createStatement().execute(sql);
+    }
+
+    private static ResultSet statementExecuteQuery(String sql) throws SQLException {
+        return connection.createStatement().executeQuery(sql);
+    }
+
+    public static UserInfo getUserInfo(int userId) throws SQLException {
+        ResultSet rs = connection.createStatement()
+                .executeQuery(("""
+                        SELECT name, surname, patronymic, user_type FROM users WHERE id=%d
+                                """.formatted(userId)
+                ));
+
+        if (rs.next())
+            return new UserInfo(userId, rs.getString(1), rs.getString(2), rs.getString(3), rs.getInt(4));
+
+        return null;
+    }
+
     public Test getTest(int idTest) throws SQLException {
         int time = connection.createStatement().executeQuery(
                 "SELECT time FROM tests WHERE id=%d LIMIT 1;"
@@ -365,25 +391,6 @@ public class SQLHandler {
         return answer_correct.getString(1);
     }
 
-    private int getLastInsertId() throws SQLException {
-        return getOneRowExecuteQuery("SELECT LAST_INSERT_ID();").getInt(1);
-    }
-
-    private ResultSet getOneRowExecuteQuery(String sql) throws SQLException {
-        ResultSet rs = connection.createStatement().executeQuery(sql);
-        rs.next();
-
-        return rs;
-    }
-
-    private void statementExecute(String sql) throws SQLException {
-        connection.createStatement().execute(sql);
-    }
-
-    private ResultSet statementExecuteQuery(String sql) throws SQLException {
-        return connection.createStatement().executeQuery(sql);
-    }
-
     public void addDirection(DirectionsRow direction, int idLevelType, int idEducationalPrograms) throws SQLException {
         statementExecute(
                 ("INSERT INTO directions (id_level, espf_code, espf_name, code, name, id_educational_program) " +
@@ -408,6 +415,7 @@ public class SQLHandler {
                 "id_educational_program=%d WHERE id=%d;").formatted(direction.getEspfCode(),
                 direction.getEspfName(), direction.getCode(), direction.getName(), idEducationalProgram, idDirections));
     }
+
     public void updateDirectionIdLevelType(int idDirections, DirectionsRow direction, int idLevelType) throws SQLException {
         statementExecute(("UPDATE directions SET id_level=%d, espf_code='%s', espf_name='%s', code='%s', name='%s', " +
                 "WHERE id=%d;").formatted(idLevelType, direction.getEspfCode(),
@@ -473,6 +481,10 @@ public class SQLHandler {
                 .formatted(competence.getName(), competence.getDescription(), idCompetence));
     }
 
+//    public ArrayList<Integer> getIdTasksByIndicator(int idIndicator) {
+//        statementExecuteQuery("")
+//    }
+
     public IndicatorsRow getIndicator(int idIndicator) throws SQLException {
         ResultSet competence = statementExecuteQuery("SELECT * FROM indicators WHERE id=%d LIMIT 1;"
                 .formatted(idIndicator));
@@ -481,10 +493,6 @@ public class SQLHandler {
                 competence.getInt("sub_id"),
                 competence.getInt("id_competence"));
     }
-
-//    public ArrayList<Integer> getIdTasksByIndicator(int idIndicator) {
-//        statementExecuteQuery("")
-//    }
 
     public TasksRow getTask(int idTask) throws SQLException {
         ResultSet task = getOneRowExecuteQuery(
@@ -511,8 +519,6 @@ public class SQLHandler {
 
         return idTasks;
     }
-
-
 }
 
 //    public void addTeacher(int login, int password) throws SQLException {
@@ -528,17 +534,3 @@ public class SQLHandler {
 //                        .formatted(login, password)
 //        );
 //    }
-
-    public static UserInfo getUserInfo(int userId) throws SQLException {
-        ResultSet rs = connection.createStatement()
-                .executeQuery(("""
-                        SELECT name, surname, patronymic, user_type FROM users WHERE id=%d
-                                """.formatted(userId)
-                ));
-
-        if (rs.next())
-            return new UserInfo(userId, rs.getString(1), rs.getString(2), rs.getString(3), rs.getInt(4));
-
-        return null;
-    }
-}
