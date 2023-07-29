@@ -17,6 +17,7 @@ import ru.ultrabasic.bstutp.messages.errors.JSONError;
 import ru.ultrabasic.bstutp.messages.errors.SessionKeyInvalid;
 import ru.ultrabasic.bstutp.messages.success.StudentsTestsListActive;
 import ru.ultrabasic.bstutp.messages.success.StudentsTestsListCompleted;
+import ru.ultrabasic.bstutp.messages.success.TeacherTestsListDraft;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -42,45 +43,32 @@ public class GetTests extends HttpServlet {
             if (userTypes == null)
                 throw new SQLException();
 
+            String taskType = req.getParameter("task_type");
+            Integer page;
+            try {
+                page = Integer.parseInt(req.getParameter("page_num"));
+            } catch (Exception e) {
+                page = 0;
+            }
+
             if (userTypes == UserTypes.STUDENT) {
-                String taskType = req.getParameter("task_type");
-                int page;
-                try {
-                    page = Integer.parseInt(req.getParameter("page_num"));
-                } catch (Exception e) {
-                    page = 0;
-                }
 
                 if ("results".equals(taskType)) {
-                    List<TestShort> taskList = SQLHandler.getStudentsTasksCompleted(userId);
-                    int pages = 1 + (taskList.size() - 1) / Config.TESTS_IN_PAGE;
-
-                    page = Math.max(0, Math.min(pages - 1, page));
-
-                    JSONArray tasks = new JSONArray();
-                    for (int i = page * Config.TESTS_IN_PAGE; i < Math.min(page * Config.TESTS_IN_PAGE + Config.TESTS_IN_PAGE,
-                            taskList.size()); i++)
-                        tasks.put(taskList.get(i).getJSONObject());
-
-                    new StudentsTestsListCompleted().writeToResponse(resp, tasks);
+                    new StudentsTestsListCompleted()
+                            .writeToResponse(resp, getTasksByPage(SQLHandler.getStudentsTasksCompleted(userId), page));
                 } else {
-                    List<TestShort> taskList = SQLHandler.getStudentsTasksActive(userId);
-                    int pages = 1 + (taskList.size() - 1) / Config.TESTS_IN_PAGE;
-
-                    page = Math.max(0, Math.min(pages - 1, page));
-
-                    JSONArray tasks = new JSONArray();
-                    for (int i = page * Config.TESTS_IN_PAGE; i < Math.min(page * Config.TESTS_IN_PAGE + Config.TESTS_IN_PAGE,
-                            taskList.size()); i++)
-                        tasks.put(taskList.get(i).getJSONObject());
-
-                    new StudentsTestsListActive().writeToResponse(resp, tasks);
+                    new StudentsTestsListActive()
+                            .writeToResponse(resp, getTasksByPage(SQLHandler.getStudentsTasksActive(userId), page));
                 }
             } else {
-
-
-                if (userTypes == UserTypes.ADMIN) {
-
+                if ("draft".equals(taskType)) {
+                    new TeacherTestsListDraft()
+                            .writeToResponse(resp, getTasksByPage(SQLHandler.getTeacherTasksDraft(userId), page));
+                } else if (userTypes == UserTypes.ADMIN && "admin".equals(taskType)) {
+                    // TODO: вернуть значения для админки
+                } else {
+                    new TeacherTestsListDraft()
+                            .writeToResponse(resp, getTasksByPage(SQLHandler.getTeacherTasksActive(userId), page));
                 }
             }
         } catch (SQLException e) {
@@ -88,5 +76,18 @@ public class GetTests extends HttpServlet {
         } catch (JSONException e) {
             new JSONError().writeToResponse(resp);
         }
+    }
+
+    public JSONArray getTasksByPage(List<TestShort> taskList, Integer page) {
+        int pages = 1 + (taskList.size() - 1) / Config.TESTS_IN_PAGE;
+
+        page = Math.max(0, Math.min(pages - 1, page));
+
+        JSONArray tasks = new JSONArray();
+        for (int i = page * Config.TESTS_IN_PAGE; i < Math.min(page * Config.TESTS_IN_PAGE + Config.TESTS_IN_PAGE,
+                taskList.size()); i++)
+            tasks.put(taskList.get(i).getJSONObject());
+
+        return tasks;
     }
 }

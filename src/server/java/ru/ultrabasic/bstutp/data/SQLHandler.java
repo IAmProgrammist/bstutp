@@ -147,7 +147,7 @@ public class SQLHandler {
                         INNER JOIN tests_disciplines ON tests_disciplines.id_test = tests.id\s
                         INNER JOIN discipline ON tests_disciplines.id_discipline = discipline.id\s
                         INNER JOIN reports ON tests.id = reports.id_test\s
-                        WHERE users.id='%d';
+                        WHERE users.id='%d' AND tests.is_draft=0;
                                 """.formatted(userId)
                 ));
 
@@ -172,6 +172,49 @@ public class SQLHandler {
                         INNER JOIN discipline ON tests_disciplines.id_discipline = discipline.id\s
                         INNER JOIN reports ON tests.id = reports.id_test\s
                         WHERE users.id='%d' AND reports.id IS NULL';
+                        WHERE users.id='%d' AND reports.id IS NULL AND tests.is_draft=0
+                                """.formatted(userId)
+                ));
+
+        List<TestShort> tests = new ArrayList<>();
+
+        while (rs.next())
+            tests.add(new TestShort(rs.getInt(1), rs.getString(2), rs.getLong(3),
+                    rs.getString(4), 0.0, false));
+
+        return tests;
+    }
+
+    public static List<TestShort> getTeacherTasksActive(int userId) throws SQLException {
+        ResultSet rs = connection.createStatement()
+                .executeQuery(("""
+                        SELECT tests.id, tests.name, tests.time, discipline.name FROM users\s
+                        INNER JOIN teacher ON teacher.id_user = users.id\s
+                        INNER JOIN tests ON tests.id_owner = users.id\s
+                        INNER JOIN tests_disciplines ON tests_disciplines.id_test = tests.id\s
+                        INNER JOIN discipline ON tests_disciplines.id_discipline = discipline.id\s
+                        WHERE users.id='%d' AND tests.is_draft = 0
+                                """.formatted(userId)
+                ));
+
+        List<TestShort> tests = new ArrayList<>();
+
+        while (rs.next())
+            tests.add(new TestShort(rs.getInt(1), rs.getString(2), rs.getLong(3),
+                    rs.getString(4), 0.0, false));
+
+        return tests;
+    }
+
+    public static List<TestShort> getTeacherTasksDraft(int userId) throws SQLException {
+        ResultSet rs = connection.createStatement()
+                .executeQuery(("""
+                        SELECT tests.id, tests.name, tests.time, discipline.name FROM users\s
+                        INNER JOIN teacher ON teacher.id_user = users.id\s
+                        INNER JOIN tests ON tests.id_owner = users.id\s
+                        INNER JOIN tests_disciplines ON tests_disciplines.id_test = tests.id\s
+                        INNER JOIN discipline ON tests_disciplines.id_discipline = discipline.id\s
+                        WHERE users.id='%d' AND tests.is_draft = 1
                                 """.formatted(userId)
                 ));
 
