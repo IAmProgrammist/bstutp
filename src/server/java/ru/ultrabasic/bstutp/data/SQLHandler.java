@@ -4,7 +4,6 @@ import ru.ultrabasic.bstutp.Config;
 import ru.ultrabasic.bstutp.data.models.TestShort;
 import ru.ultrabasic.bstutp.data.models.UserTypes;
 import ru.ultrabasic.bstutp.sql.DirectionsRow;
-import ru.ultrabasic.bstutp.sql.DirectionsRowFullData;
 import ru.ultrabasic.bstutp.sql.Task;
 import ru.ultrabasic.bstutp.sql.Test;
 
@@ -353,14 +352,26 @@ public class SQLHandler {
                         idDirections));
     }
 
-    public DirectionsRowFullData getDirectionFullData(int id) throws SQLException {
+    public DirectionsRow getDirection(int idDirection) throws SQLException {
         ResultSet direction = statementExecuteQuery("SELECT * FROM directions WHERE id=%d LIMIT 1;"
-                .formatted(id));
-        ResultSet
-        return; new DirectionsRowFullData(
-                direction.getString("id"),
-// TODO: 29.07.2023 дописать
-                );
+                .formatted(idDirection));
+        return new DirectionsRow(
+                direction.getString("espf_code"),
+                direction.getString("espf_name"),
+                direction.getString("code"),
+                direction.getString("name"),
+                direction.getInt("id_level"),
+                direction.getInt("id_educational_program"));
+    }
+
+    public String getNameEducationalProgram(int idEducationalProgram) throws SQLException {
+        return statementExecuteQuery("SELECT * FROM educational_programs WHERE id=%d LIMIT 1;"
+                .formatted(idEducationalProgram)).getString("name");
+    }
+
+    public String getLevel(int idLevel) throws SQLException {
+        return statementExecuteQuery("SELECT * FROM levels WHERE id=%d LIMIT 1;"
+                .formatted(idLevel)).getString("type");
     }
 
 //    public void addTeacher(int login, int password) throws SQLException {

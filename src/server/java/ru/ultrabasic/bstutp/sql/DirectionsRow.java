@@ -5,6 +5,32 @@ public class DirectionsRow {
     private String espfName;
     private String code;
     private String name;
+    private int idLevel;
+    private int educationalProgram;
+
+    public DirectionsRow(String espfCode, String espfName, String code, String name) {
+        this.espfCode = espfCode;
+        this.espfName = espfName;
+        this.code = code;
+        this.name = name;
+    }
+
+    public DirectionsRow(String espfCode, String espfName, String code, String name, int idLevel, int educationalProgram) {
+        this.espfCode = espfCode;
+        this.espfName = espfName;
+        this.code = code;
+        this.name = name;
+        this.idLevel = idLevel;
+        this.educationalProgram = educationalProgram;
+    }
+
+    public int getIdLevel() {
+        return idLevel;
+    }
+
+    public int getEducationalProgram() {
+        return educationalProgram;
+    }
 
     public String getEspfCode() {
         return espfCode;
@@ -20,12 +46,5 @@ public class DirectionsRow {
 
     public String getName() {
         return name;
-    }
-
-    public DirectionsRow(String espfCode, String espfName, String code, String name) {
-        this.espfCode = espfCode;
-        this.espfName = espfName;
-        this.code = code;
-        this.name = name;
     }
 }
