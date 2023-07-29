@@ -29,7 +29,7 @@ import java.util.List;
 @WebServlet("/api/tests/list")
 public class GetTests extends HttpServlet {
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         try {
             Integer userId = null;
             for (Cookie cookie : req.getCookies())

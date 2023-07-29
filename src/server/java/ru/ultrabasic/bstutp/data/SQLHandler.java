@@ -2,15 +2,18 @@ package ru.ultrabasic.bstutp.data;
 
 import ru.ultrabasic.bstutp.Config;
 import ru.ultrabasic.bstutp.data.models.*;
+import ru.ultrabasic.bstutp.data.models.TestShort;
+import ru.ultrabasic.bstutp.data.models.UserInfo;
+import ru.ultrabasic.bstutp.data.models.UserTypes;
+import ru.ultrabasic.bstutp.data.models.DirectionsRow;
+import ru.ultrabasic.bstutp.data.models.Task;
+import ru.ultrabasic.bstutp.data.models.Test;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public class SQLHandler {
     static Connection connection;
@@ -142,8 +145,8 @@ public class SQLHandler {
                         INNER JOIN tests_disciplines ON tests_disciplines.id_test = tests.id\s
                         INNER JOIN discipline ON tests_disciplines.id_discipline = discipline.id\s
                         INNER JOIN reports ON tests.id = reports.id_test\s
-                        WHERE users.id='%d' AND tests.is_draft=0;
-                                """.formatted(userId)
+                        WHERE users.id='%d' AND tests.is_draft=0 AND (%d + tests.time * 1000) > reports.completion_time;
+                                """.formatted(userId, new Date().getTime())
                 ));
 
         List<TestShort> tests = new ArrayList<>();
@@ -158,16 +161,40 @@ public class SQLHandler {
     public static List<TestShort> getStudentsTasksActive(int userId) throws SQLException {
         ResultSet rs = connection.createStatement()
                 .executeQuery(("""
-                        SELECT tests.id, tests.name, tests.time, discipline.name, reports.id FROM users\s
-                        INNER JOIN students ON users.id = students.id_user\s
-                        INNER JOIN teaching_groups ON teaching_groups.id = students.id_group\s
-                        INNER JOIN tests_groups ON tests_groups.id_group = students.id_group\s
-                        INNER JOIN tests ON tests_groups.id_group = tests.id\s
-                        INNER JOIN tests_disciplines ON tests_disciplines.id_test = tests.id\s
-                        INNER JOIN discipline ON tests_disciplines.id_discipline = discipline.id\s
-                        INNER JOIN reports ON tests.id = reports.id_test\s
-                        WHERE users.id='%d' AND reports.id IS NULL AND tests.is_draft=0
-                                """.formatted(userId)
+                        SELECT tests.id, tests.name, tests.time, discipline.name FROM users
+                        INNER JOIN students ON users.id = students.id_user
+                        INNER JOIN teaching_groups ON teaching_groups.id = students.id_group
+                        INNER JOIN tests_groups ON tests_groups.id_group = students.id_group
+                        INNER JOIN tests ON tests_groups.id_group = tests.id
+                        INNER JOIN tests_disciplines ON tests_disciplines.id_test = tests.id
+                        INNER JOIN discipline ON tests_disciplines.id_discipline = discipline.id
+                        LEFT JOIN reports ON tests.id = reports.id_test
+                        WHERE users.id='%d' AND (reports.id IS NULL OR (%d + tests.time * 1000) < reports.completion_time) AND tests.is_draft=0
+                                """.formatted(userId, new Date().getTime())
+                ));
+
+        List<TestShort> tests = new ArrayList<>();
+
+        while (rs.next())
+            tests.add(new TestShort(rs.getInt(1), rs.getString(2), rs.getLong(3),
+                    rs.getString(4), 0.0, false));
+
+        return tests;
+    }
+
+    public static List<TestShort> getStudentsTasksRunning(int userId) throws SQLException {
+        ResultSet rs = connection.createStatement()
+                .executeQuery(("""
+                        SELECT tests.id, tests.name, tests.time, discipline.name FROM users
+                        INNER JOIN students ON users.id = students.id_user
+                        INNER JOIN teaching_groups ON teaching_groups.id = students.id_group
+                        INNER JOIN tests_groups ON tests_groups.id_group = students.id_group
+                        INNER JOIN tests ON tests_groups.id_group = tests.id
+                        INNER JOIN tests_disciplines ON tests_disciplines.id_test = tests.id
+                        INNER JOIN discipline ON tests_disciplines.id_discipline = discipline.id
+                        INNER JOIN reports ON tests.id = reports.id_test
+                        WHERE users.id='%d' AND (%d + tests.time * 1000) < reports.completion_time AND tests.is_draft=0
+                                """.formatted(userId, new Date().getTime())
                 ));
 
         List<TestShort> tests = new ArrayList<>();
@@ -221,21 +248,56 @@ public class SQLHandler {
         return tests;
     }
 
-    public static UserInfo getUserInfo(int userId) throws SQLException {
-        ResultSet rs = connection.createStatement()
-                .executeQuery(("""
-                        SELECT name, surname, patronymic, user_type FROM users WHERE id=%d;
-                                """.formatted(userId)
-                ));
+    public static TestState getState(int userId, int testId) throws SQLException {
+        Optional<TestShort> searchRes = getStudentsTasksRunning(userId).stream().filter(el -> el.id == testId).findFirst();
+        if (searchRes.isPresent())
+            return TestState.RUNNING;
 
-        if (rs.next())
-            return new UserInfo(userId, rs.getString(1), rs.getString(2), rs.getString(3), rs.getInt(4));
+        searchRes = getStudentsTasksActive(userId).stream().filter(el -> el.id == testId).findFirst();
+        if (searchRes.isPresent())
+            return TestState.AVAILABLE;
+
+        searchRes = getStudentsTasksCompleted(userId).stream().filter(el -> el.id == testId).findFirst();
+        if (searchRes.isPresent())
+            return TestState.COMPLETED;
 
         return null;
     }
 
-    public Test getTestWithQuestions(int idTest) throws SQLException {
-        int time = getOneRowExecuteQuery(
+    public static TestShort getTestShort(int testId) throws SQLException {
+        ResultSet rs = connection.createStatement()
+                .executeQuery(("""
+                        SELECT tests.id, tests.name, tests.time, discipline.name FROM tests\s
+                        INNER JOIN tests_disciplines ON tests_disciplines.id_test = tests.id\s
+                        INNER JOIN discipline ON tests_disciplines.id_discipline = discipline.id\s
+                        WHERE tests.id='%d'
+                                """.formatted(testId)
+                ));
+
+        if (rs.next())
+            return new TestShort(rs.getInt(1), rs.getString(2), rs.getLong(3),
+                    rs.getString(4), 0.0, false);
+
+        return null;
+    }
+
+    public static boolean startTest(int userId, int testId) throws SQLException {
+        TestShort test = getTestShort(testId);
+
+        connection.createStatement()
+                .executeUpdate(("""
+                        INSERT INTO reports(id_student, id_test, completion_time) VALUES (%d, %d, %d)
+                                """.formatted(userId, testId, test.duration * 1000 + new Date().getTime())));
+
+        int reportId = getLastInsertId();
+
+        //TODO: доделать позже
+
+        return false;
+    }
+
+    public Test getTest(int idTest) throws SQLException {
+        int time = connection.createStatement().executeQuery(
                 "SELECT time FROM tests WHERE id=%d LIMIT 1;"
                         .formatted(idTest)).getInt(1);
 
@@ -322,11 +384,11 @@ public class SQLHandler {
         return connection.createStatement().executeQuery(sql);
     }
 
-    public void addDirection(DirectionsRow direction, LevelTypes levelType, int idEducationalPrograms) throws SQLException {
+    public void addDirection(DirectionsRow direction, int idLevelType, int idEducationalPrograms) throws SQLException {
         statementExecute(
                 ("INSERT INTO directions (id_level, espf_code, espf_name, code, name, id_educational_program) " +
                         "VALUES (%d, '%s', '%s','%s','%s', %d);").formatted(
-                        levelType.id, direction.getEspfCode(), direction.getEspfName(),
+                        idLevelType, direction.getEspfCode(), direction.getEspfName(),
                         direction.getCode(), direction.getName(), idEducationalPrograms)
         );
     }
@@ -335,9 +397,9 @@ public class SQLHandler {
         statementExecute("DELETE FROM directions WHERE id=%d;".formatted(id_direction));
     }
 
-    public void updateDirectionAll(int idDirections, DirectionsRow direction, LevelTypes levelType, int idEducationalPrograms) throws SQLException {
+    public void updateDirectionAll(int idDirections, DirectionsRow direction, int idLevelType, int idEducationalPrograms) throws SQLException {
         statementExecute(("UPDATE directions SET id_level=%d, espf_code='%s', espf_name='%s', code='%s', name='%s', " +
-                "id_educational_program=%d WHERE id=%d;").formatted(levelType.id, direction.getEspfCode(),
+                "id_educational_program=%d WHERE id=%d;").formatted(idLevelType, direction.getEspfCode(),
                 direction.getEspfName(), direction.getCode(), direction.getName(), idEducationalPrograms, idDirections));
     }
 
@@ -346,15 +408,14 @@ public class SQLHandler {
                 "id_educational_program=%d WHERE id=%d;").formatted(direction.getEspfCode(),
                 direction.getEspfName(), direction.getCode(), direction.getName(), idEducationalProgram, idDirections));
     }
-
-    public void updateDirectionIdLevelType(int idDirections, DirectionsRow direction, LevelTypes levelType) throws SQLException {
+    public void updateDirectionIdLevelType(int idDirections, DirectionsRow direction, int idLevelType) throws SQLException {
         statementExecute(("UPDATE directions SET id_level=%d, espf_code='%s', espf_name='%s', code='%s', name='%s', " +
-                "WHERE id=%d;").formatted(levelType.id, direction.getEspfCode(),
+                "WHERE id=%d;").formatted(idLevelType, direction.getEspfCode(),
                 direction.getEspfName(), direction.getCode(), direction.getName(), idDirections));
     }
 
     public void updateDirection(int idDirections, DirectionsRow direction) throws SQLException {
-        statementExecute("UPDATE directions SET espf_code='%s', espf_name='%s', code='%s', name='%s', WHERE id=%d;"
+        statementExecute(("UPDATE directions SET espf_code='%s', espf_name='%s', code='%s', name='%s', WHERE id=%d;")
                 .formatted(direction.getEspfCode(), direction.getEspfName(), direction.getCode(), direction.getName(),
                         idDirections));
     }
@@ -467,3 +528,17 @@ public class SQLHandler {
 //                        .formatted(login, password)
 //        );
 //    }
+
+    public static UserInfo getUserInfo(int userId) throws SQLException {
+        ResultSet rs = connection.createStatement()
+                .executeQuery(("""
+                        SELECT name, surname, patronymic, user_type FROM users WHERE id=%d
+                                """.formatted(userId)
+                ));
+
+        if (rs.next())
+            return new UserInfo(userId, rs.getString(1), rs.getString(2), rs.getString(3), rs.getInt(4));
+
+        return null;
+    }
+}

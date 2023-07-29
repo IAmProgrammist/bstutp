@@ -74,8 +74,6 @@ let LoginRegisterScreen = props => {
                             .then(res => {
                                 setListFetching(false);
 
-                                console.log(res);
-
                                 setListData(res);
                             })
                             .catch(res => {

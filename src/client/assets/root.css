@@ -27,6 +27,15 @@ img {
     object-fit: contain;
 }
 
+hr {
+    border: 0;
+    clear:both;
+    display:block;
+    width: 100%;
+    background-color: black;
+    height: 1px;
+}
+
 a {
     text-decoration: none;
 }

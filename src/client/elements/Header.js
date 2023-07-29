@@ -2,18 +2,16 @@ import React from 'react';
 import style from '../assets/header.css'
 
 let Header = props => {
-    console.log("damn");
-
     let {showBackButton, showAddButton, showExportButton} = props;
     let {onBackClicked, onAddClicked, onExportClicked} = props;
     let {userInfo, onUserClick} = props;
 
     return <header className={"header"}>
         <div className={"container"}>
-            {showBackButton && <a className={"header__button_type_back header__button"} href={"#"} onClick={ev => {
+            {<a className={"header__button_type_back header__button"} href={"#"} onClick={ev => {
                 ev.preventDefault();
                 onBackClicked()
-            } }>Назад</a>}
+            } }>{showBackButton ? "Назад" : ""}</a>}
             {showAddButton && <a className={"header__button_type_add header__button"} href={"#"} onClick={ev => {
                 ev.preventDefault();
                 onAddClicked()

@@ -3,12 +3,12 @@ package ru.ultrabasic.bstutp.data.models;
 import org.json.JSONObject;
 
 public class TestShort {
-    int id;
-    String name;
-    long duration;
-    String discipline;
-    Double result;
-    boolean completed;
+    public int id;
+    public String name;
+    public long duration;
+    public String discipline;
+    public Double result;
+    public boolean completed;
 
     public TestShort(int id, String name, long duration, String discipline, Double result, boolean completed) {
         this.id = id;

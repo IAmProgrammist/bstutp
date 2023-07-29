@@ -24,7 +24,7 @@
     </servlet>
     <servlet-mapping>
         <servlet-name>testspage</servlet-name>
-        <url-pattern>/records</url-pattern>
+        <url-pattern>/tests</url-pattern>
     </servlet-mapping>
 
     <jsp-config>

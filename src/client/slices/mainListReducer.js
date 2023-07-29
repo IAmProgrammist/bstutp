@@ -29,10 +29,11 @@ const mainlistSlice = createSlice({
     name: "mainlist",
     initialState,
     reducers: {
-        setListFetching: (state, payload) => {
-            state.isFetching = payload;
+        setListFetching: (state, action) => {
+            state.isFetching = action.payload;
         },
-        setListData: (state, payload) => {
+        setListData: (state, action) => {
+            const payload = action.payload;
             state.userName = payload.userInfo.name;
             state.userSurname = payload.userInfo.surname;
             state.userPatronymic = payload.userInfo.patronymic;
