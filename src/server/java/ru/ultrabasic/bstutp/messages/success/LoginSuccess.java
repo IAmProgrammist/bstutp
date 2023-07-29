@@ -15,15 +15,12 @@ public class LoginSuccess extends Message {
         super("login_success", MessageCodes.OK);
     }
 
-    public void writeToResponse(HttpServletResponse response, Cookie sessionKeyCookie, UserTypes userType) throws IOException {
+    public void writeToResponse(HttpServletResponse response, UserTypes userType) throws IOException {
         response.setStatus(code.code);
 
         JSONObject body = new JSONObject();
         body.put("type", type);
         body.put("user_type", userType.type);
-
-        sessionKeyCookie.setSecure(true);
-        response.addCookie(sessionKeyCookie);
 
         response.getWriter().println(body);
     }

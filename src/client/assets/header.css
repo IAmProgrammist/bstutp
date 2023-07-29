@@ -1,0 +1,24 @@
+.header .container {
+    display: block;
+}
+
+.header__button_type_user, .header__button_type_export {
+    float: right;
+    margin-left: 20px;
+}
+
+.header__button_type_user {
+    font-weight: bold;
+}
+
+.header__button_type_back, .header__button_type_add {
+    margin-right: 20px;
+}
+
+.header {
+    background-color: #1d1d2d;
+}
+
+.header__button_type_user, .header__button_type_export, .header__button_type_back, .header__button_type_add {
+    color: white;
+}

@@ -1,6 +1,6 @@
 import React from 'react';
 import style from '../assets/formLoginRegister.css'
-import { useNavigate } from "react-router-dom";
+import {useNavigate} from "react-router-dom";
 
 let LoginRegisterScreen = props => {
     let baseURL = window.location.origin;
@@ -22,6 +22,8 @@ let LoginRegisterScreen = props => {
         setErrorLogin
     } = props.loginFuncs;
 
+    let {setListFetching, setListData} = props;
+
     return <form className={"loginForm loginForm_type_login"}
                  action={"/api/account/login"} method={"post"} onSubmit={ev => {
         loginRegisterFetching(true);
@@ -29,9 +31,9 @@ let LoginRegisterScreen = props => {
         const data = new FormData(ev.target);
         let sendObject = {};
 
-        for (const [name, value] of data) {
-            sendObject[name] = value;
-        }
+        sendObject.login = data.get("login");
+        sendObject.password = data.get("password");
+        sendObject.rememberMe = data.get("rememberMe") ? true : false;
 
         fetch(ev.target.getAttribute("action"),
             {
@@ -43,13 +45,7 @@ let LoginRegisterScreen = props => {
                 credentials: "include",
                 body: JSON.stringify(sendObject)
             })
-            .then(res => {
-                loginRegisterFetching(false);
-                if (res.ok)
-                    navigate("/records");
-
-                return res.json();
-            })
+            .then(res => res.json())
             .then(res => {
                 console.log(res);
                 loginRegisterFetching(false);
@@ -57,6 +53,37 @@ let LoginRegisterScreen = props => {
                 switch (res.type) {
                     case "user_doesnt_exists":
                         setErrorLogin();
+                        break;
+                    case "login_success":
+                        setListFetching(true);
+
+                        fetch(baseURL + "/api/tests/list", {
+                            method: 'GET',
+                            headers: {
+                                'Accept': 'application/json',
+                                'Content-Type': 'application/json'
+                            },
+                            credentials: "include"
+                        })
+                            .then(res => {
+                                setListFetching(false);
+                                if (res.ok)
+                                    navigate("/tests");
+                                return res.json();
+                            })
+                            .then(res => {
+                                setListFetching(false);
+
+                                console.log(res);
+
+                                setListData(res);
+                            })
+                            .catch(res => {
+                                setListFetching(false);
+                                console.error("Vlad please fix this, something really bad happened");
+                                console.error(res.stack);
+                            })
+
                         break;
                     default:
                         console.error("Vlad please fix this, this event in login/register is not set " + res.type);
@@ -84,14 +111,18 @@ let LoginRegisterScreen = props => {
                    className={"loginForm__input loginForm__input_type_password"}/>
         </div>
         <div className={"loginForm__input-checkbox-container"}>
-            <input id={"rememberMe"} type={"checkbox"} name={"rememberMe"} value={rememberMe}
-                   onChange={(ev) => changeRememberMe(ev.target.value)}
-                   className={"loginForm__input loginForm__input_type_checkbox"} placeholder={"Запомнить меня"} name={"rememberMe"}/>
+            <input id={"rememberMe"} type={"checkbox"} name={"rememberMe"} checked={rememberMe}
+                   onChange={(ev) => {
+                       changeRememberMe(!rememberMe);
+                   }}
+                   className={"loginForm__input loginForm__input_type_checkbox"} placeholder={"Запомнить меня"}
+                   name={"rememberMe"}/>
             <label htmlFor={"rememberMe"}>Запомнить меня</label>
         </div>
 
         <button type={"submit"}
-                className={"button loginForm__input loginForm__input_type_submit"}>Войти</button>
+                className={"button loginForm__input loginForm__input_type_submit"}>Войти
+        </button>
     </form>
 }
 

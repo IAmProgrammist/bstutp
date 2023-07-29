@@ -1,4 +1,4 @@
-package ru.ultrabasic.bstutp.sql;
+package ru.ultrabasic.bstutp.data.models;
 
 import java.util.ArrayList;
 

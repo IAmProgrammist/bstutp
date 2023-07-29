@@ -1,8 +1,8 @@
-CREATE DATABASE  IF NOT EXISTS `tester` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
-USE `tester`;
+CREATE DATABASE  IF NOT EXISTS `testing_platform` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
+USE `testing_platform`;
 -- MySQL dump 10.13  Distrib 8.0.34, for Win64 (x86_64)
 --
--- Host: localhost    Database: tester
+-- Host: localhost    Database: testing_platform
 -- ------------------------------------------------------
 -- Server version	8.0.34
 
@@ -61,6 +61,7 @@ CREATE TABLE `competence` (
 
 LOCK TABLES `competence` WRITE;
 /*!40000 ALTER TABLE `competence` DISABLE KEYS */;
+INSERT INTO `competence` VALUES (8,'Безопасность жизнедеятельности','Способен создавать и поддерживать в повседневной жизни и в профессиональной деятельности безопасные условия жизнедеятельности для сохранения природной среды, обеспечения устойчивого развития общества, в том числе при угрозе и возникновении чрезвычайных ситуаций и военных конфликтов'),(9,'Инклюзивная компетентность','Способен использовать базовые дефектологические знания в социальной и профессиональной сферах'),(10,'Экономическая культура, в том числе финансовая грамотность ','Способен принимать обоснованные экономические решения в различных областях жизнедеятельности'),(11,'Гражданская \r позиция','Способен формировать нетерпимое отношение к коррупционному поведению');
 /*!40000 ALTER TABLE `competence` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -85,7 +86,7 @@ CREATE TABLE `directions` (
   KEY `directions_id_ed_program_idx` (`id_educational_program`),
   CONSTRAINT `directions_id_ed_program` FOREIGN KEY (`id_educational_program`) REFERENCES `educational_programs` (`id`) ON DELETE SET NULL,
   CONSTRAINT `directions_id_level` FOREIGN KEY (`id_level`) REFERENCES `levels` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=34 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -94,6 +95,7 @@ CREATE TABLE `directions` (
 
 LOCK TABLES `directions` WRITE;
 /*!40000 ALTER TABLE `directions` DISABLE KEYS */;
+INSERT INTO `directions` VALUES (1,1,'27.00.00','Управление в технических системах',' 27.03.01','Стандартизация и метрология',1),(18,1,'27.00.00','Управление в технических системах',' 27.03.02','Управление качеством',2),(19,1,'27.00.00','Управление в технических системах',' 27.03.04','Управление в технических системах',3),(20,1,'28.00.00','Нанотехнологии и наноматериалы',' 28.03.02','Наноинженерия',4),(21,1,'35.00.00','Сельское, лесное и рыбное хозяйство',' 35.03.02','Технология лесозаготовительных и дерево-перерабатывающих производств',5),(22,1,'38.00.00','Экономика и управление',' 38.03.01','Экономика',6),(23,1,'38.00.00','Экономика и управление',' 38.03.01','Экономика',7),(24,1,'38.00.00','Экономика и управление',' 38.03.01','Экономика',8),(25,1,'38.00.00','Экономика и управление',' 38.03.01','Экономика',9),(26,1,'38.00.00','Экономика и управление',' 38.03.02','Менеджмент',10),(27,1,'38.00.00','Экономика и управление',' 38.03.02','Менеджмент',11),(28,1,'38.00.00','Экономика и управление',' 38.03.03','Управление персоналом',12),(29,1,'38.00.00','Экономика и управление',' 38.03.05','Бизнес-информатика',13),(30,1,'38.00.00','Экономика и управление',' 38.03.10','Жилищное хозяйство и коммунальная инфраструктура',14),(31,1,'41.00.00','Политические науки и регионоведение',' 41.03.06','Публичная политика и социальные науки',15),(32,1,'44.00.00','Образование и педагогические науки',' 44.03.04','Профессиональное обучение',16),(33,1,'54.00.00','Изобразительное и прикладные виды искусств',' 54.03.02','Декоративно-прикладное искусство и народные промыслы',17);
 /*!40000 ALTER TABLE `directions` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -158,7 +160,7 @@ CREATE TABLE `educational_programs` (
   `id` int NOT NULL AUTO_INCREMENT,
   `name` text NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -167,6 +169,7 @@ CREATE TABLE `educational_programs` (
 
 LOCK TABLES `educational_programs` WRITE;
 /*!40000 ALTER TABLE `educational_programs` DISABLE KEYS */;
+INSERT INTO `educational_programs` VALUES (1,'Метрология, стандартизация,  и сертификация'),(2,'Управление качеством'),(3,'Управление и информатика в технических системах'),(4,'Безопасность систем и технологий наноинженерии'),(5,'Технология деревоперерабатывающих производств'),(6,'Экономика предприятий и организаций'),(7,'Бухгалтерский учет, анализ и аудит'),(8,'Финансы и кредит'),(9,'Мировая экономика'),(10,'Стратегический менеджмент'),(11,'Маркетинг'),(12,'Управление персоналом организации'),(13,'Технологическое предпринимательство'),(14,'Управление жилищным фондом и многоквартирными домами'),(15,'Публичная политика в социально-экономической сфере'),(16,'Транспорт'),(17,'Арт-дизайн');
 /*!40000 ALTER TABLE `educational_programs` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -193,6 +196,7 @@ CREATE TABLE `educational_programs_competences` (
 
 LOCK TABLES `educational_programs_competences` WRITE;
 /*!40000 ALTER TABLE `educational_programs_competences` DISABLE KEYS */;
+INSERT INTO `educational_programs_competences` VALUES (1,9),(2,8),(2,10),(3,11),(3,10),(3,9),(4,9),(4,9),(5,10),(6,10),(7,11),(7,9),(7,8),(8,8),(8,9),(8,11),(9,8),(9,11),(10,11),(10,10),(11,8),(12,8),(14,9),(14,11),(15,8),(15,9),(16,11),(17,9),(17,11),(17,10);
 /*!40000 ALTER TABLE `educational_programs_competences` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -212,7 +216,7 @@ CREATE TABLE `indicators` (
   UNIQUE KEY `id_UNIQUE` (`id`),
   KEY `indicators_id_competence_competence_id_idx` (`id_competence`),
   CONSTRAINT `indicators_id_competence_competence_id` FOREIGN KEY (`id_competence`) REFERENCES `competence` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -221,6 +225,7 @@ CREATE TABLE `indicators` (
 
 LOCK TABLES `indicators` WRITE;
 /*!40000 ALTER TABLE `indicators` DISABLE KEYS */;
+INSERT INTO `indicators` VALUES (1,'Создает и поддерживает безопасные условия жизнедеятельности, в том числе при возникновении чрезвычайных ситуаций; угрозе и возникновении чрезвычайных ситуаций и военных конфликтов',2,8),(2,'Демонстрирует  способы  оказания первой помощи  в  зависимости  от  вида  неотложного состояния организма',3,8),(3,'Обладает представлениями о принципах взаимодействия при коммуникации в социальной и профессиональной сферах, с учётом социально-психологических особенностей лиц с ограниченными возможностями здоровья',1,9),(4,'Взаимодействует с лицами имеющими ограничения возможности здоровья или инвалидность в социальной и профессиональной сферах, используя базовые дефектологические знания',2,9),(5,'Идентифицирует экономическую проблему в макро-, мезо- и микросреде для принятия обоснованного решения',1,10),(6,'Анализирует, опираясь на экономические законы, состояние и перспективы развития объектов экономических отношений: домохозяйства, фирмы, отрасли, региона, страны, мировой экономики',2,10),(7,'Принимает со знанием экономических законов обоснованные экономические решения как производитель и как потребитель благ',3,10),(8,'Выявляет проблемы функционирования и развития экономики на микро-, мезо- и макроуровнях',4,10),(9,'Анализирует, опираясь на экономические законы, состояние и перспективы развития объектов экономических отношений на уровнях домохозяйства, фирмы, отрасли, региона, страны, мировой экономики',5,10),(10,'Обосновывает поведение экономических субъектов различного уровня',6,10),(11,'Выбирает наиболее эффективные варианты принятия экономических решений, основываясь на действии экономических законов в различных областях жизнедеятельности',7,10),(12,'Анализирует, интерпретирует и использует действующие правовые нормы, регулирующие борьбу с коррупцией в различных областях жизнедеятельности',1,11),(13,'Понимает сущность коррупционного поведения, причины и формы его проявления в различных сферах общественной жизни',2,11);
 /*!40000 ALTER TABLE `indicators` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -338,7 +343,6 @@ CREATE TABLE `reports` (
   `id` int NOT NULL AUTO_INCREMENT,
   `id_student` int NOT NULL,
   `id_test` int NOT NULL,
-  `completion_time` bigint NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -375,6 +379,7 @@ CREATE TABLE `session_keys` (
 
 LOCK TABLES `session_keys` WRITE;
 /*!40000 ALTER TABLE `session_keys` DISABLE KEYS */;
+INSERT INTO `session_keys` VALUES ('0b5a1020-d500-48d9-af3a-8a04f2ccd434',1,1753690169895),('23c35247-31c1-4371-8bf0-e9ec61b94f71',1,1753687727755),('284aef54-6504-4d74-b1ea-d28037d1dfc9',1,1753687974257),('2b48d66e-96f7-472f-af81-cb5fb0429790',2,1753658447802),('2f613068-eda7-4372-88b0-bda11ffb3282',1,1753688792863),('3282df90-8679-4ecb-b46a-1327abfd7ec0',1,1753688718255),('3a7183a5-d522-4a60-a262-0467190f5b63',1,1753689114989),('5a33e2b7-1e95-40f5-8d19-787df55d6b9c',1,1753690194524),('5de605af-fb77-4816-b527-45db66a0e9da',1,1753689324805),('6c11cd5d-4da9-4591-a001-d65f780eb6fa',1,1753688370123),('80de3e59-77dc-47ad-9bd6-a42ffaa1da08',1,1753688087450),('80e24987-e023-4732-8934-7a5ebdb49025',1,1753688896510),('84d1cd16-a980-4b4b-9379-9d284bc3eca4',1,1753659622514),('8569f740-663a-4209-ab9b-e2a674ca67ff',1,1753659706472),('8da702b0-705c-4486-9645-2f4b2b993b3c',1,1753687910583),('9a37335c-1538-4b0e-848e-4695a36a7a56',2,1753658408868),('9fd8cff9-d6e3-4045-b882-098f3a2d39e8',1,1753657534860),('a343238b-ec78-493d-8121-8057287f1a7f',1,1753688319362),('a6aa236e-e30e-41bc-8fd8-d568b2fb5923',1,1753687234220),('b2fdbc65-029e-4a43-9df2-261ee1f3f826',1,1753688937415),('b5eee7f2-ddb2-4945-9414-71177a03f482',1,1753689040964),('bce67be1-c980-47c5-8bd6-cdd6cc8e28bd',1,1753688865727),('dac5eb4f-9e80-4ca9-a663-340733a28fe1',1,1753659638108),('f1ad0b8b-812f-4964-8416-1a7caedddf6b',1,1753659538286),('feafd315-0366-45e7-b794-fdcd80f124b8',1,1753689010775);
 /*!40000 ALTER TABLE `session_keys` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -402,6 +407,7 @@ CREATE TABLE `students` (
 
 LOCK TABLES `students` WRITE;
 /*!40000 ALTER TABLE `students` DISABLE KEYS */;
+INSERT INTO `students` VALUES (1,1,1231233);
 /*!40000 ALTER TABLE `students` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -611,6 +617,7 @@ CREATE TABLE `teacher` (
 
 LOCK TABLES `teacher` WRITE;
 /*!40000 ALTER TABLE `teacher` DISABLE KEYS */;
+INSERT INTO `teacher` VALUES (2,1);
 /*!40000 ALTER TABLE `teacher` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -625,7 +632,7 @@ CREATE TABLE `teacher_status` (
   `id` int NOT NULL AUTO_INCREMENT,
   `name` tinytext NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -634,6 +641,7 @@ CREATE TABLE `teacher_status` (
 
 LOCK TABLES `teacher_status` WRITE;
 /*!40000 ALTER TABLE `teacher_status` DISABLE KEYS */;
+INSERT INTO `teacher_status` VALUES (1,'Крутой учитель');
 /*!40000 ALTER TABLE `teacher_status` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -651,7 +659,7 @@ CREATE TABLE `teaching_groups` (
   PRIMARY KEY (`id`),
   KEY `groups_id_direction_idx` (`id_direction`),
   CONSTRAINT `groups_id_direction` FOREIGN KEY (`id_direction`) REFERENCES `directions` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -660,6 +668,7 @@ CREATE TABLE `teaching_groups` (
 
 LOCK TABLES `teaching_groups` WRITE;
 /*!40000 ALTER TABLE `teaching_groups` DISABLE KEYS */;
+INSERT INTO `teaching_groups` VALUES (1,'ПВ-223',20);
 /*!40000 ALTER TABLE `teaching_groups` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -680,7 +689,7 @@ CREATE TABLE `tests` (
   UNIQUE KEY `code_UNIQUE` (`id`),
   KEY `tests_id_owner_idx` (`id_owner`),
   CONSTRAINT `tests_id_owner` FOREIGN KEY (`id_owner`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -689,6 +698,7 @@ CREATE TABLE `tests` (
 
 LOCK TABLES `tests` WRITE;
 /*!40000 ALTER TABLE `tests` DISABLE KEYS */;
+INSERT INTO `tests` VALUES (1,900,0,2,'Чёткий тест');
 /*!40000 ALTER TABLE `tests` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -767,6 +777,7 @@ CREATE TABLE `tests_groups` (
 
 LOCK TABLES `tests_groups` WRITE;
 /*!40000 ALTER TABLE `tests_groups` DISABLE KEYS */;
+INSERT INTO `tests_groups` VALUES (1,1);
 /*!40000 ALTER TABLE `tests_groups` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -814,7 +825,7 @@ CREATE TABLE `users` (
   UNIQUE KEY `login_UNIQUE` (`login`),
   KEY `users_user_type_idx` (`user_type`),
   CONSTRAINT `users_user_type` FOREIGN KEY (`user_type`) REFERENCES `user_types` (`id`) ON DELETE RESTRICT
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -823,6 +834,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
+INSERT INTO `users` VALUES (1,'login','password',0,'Безпапный','лол',NULL),(2,'teacher','onizuka',1,'Крутой','Учитель','Онидзука');
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -835,4 +847,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2023-07-29 13:48:05
+-- Dump completed on 2023-07-29 13:53:12
