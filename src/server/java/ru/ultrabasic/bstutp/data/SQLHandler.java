@@ -685,6 +685,55 @@ public class SQLHandler {
         return idDiscipline;
     }
 
+    public int addUpdateGroups(GroupsRow group) throws SQLException {
+        if (!statementExecuteQuery("SELECT * FROM directions WHERE id=%d LIMIT 1;"
+                .formatted(group.getIdDirection())).next()) {
+            new DatabaseError();
+            throw new SQLException();
+        }
+
+        if (group.getId() == null) {
+            // add
+            statementExecute("INSERT INTO teaching_groups (name, id_direction) VALUES ('%s', %d);"
+                    .formatted(group.getName(), group.getIdDirection()));
+
+            return getLastInsertId();
+        } else if (group.getId() > 0) {
+            // update
+            statementExecute("UPDATE teaching_groups SET name='%s', id_direction=%d WHERE id=%d;"
+                    .formatted(group.getName(), group.getIdDirection(), group.getId()));
+
+            return group.getId();
+        } else {
+            new DatabaseError();
+            throw new SQLException();
+        }
+    }
+
+    public int addStudent(StudentsRow student) throws SQLException {
+        if (!statementExecuteQuery("SELECT * FROM teaching_groups WHERE id=%d LIMIT 1;"
+                .formatted(student.getIdGroup())).next()) {
+            new DatabaseError();
+            throw new SQLException();
+        }
+
+        if (!statementExecuteQuery("SELECT * FROM users WHERE id=%d AND user_type=%d LIMIT 1;"
+                .formatted(student.getIdUser(), 0)).next()) {
+            new DatabaseError();
+            throw new SQLException();
+        }
+
+        if (student.getIdUser() > 0){
+            // add
+            statementExecute("INSERT INTO students (id_user, id_group, report_card_id) VALUES (%d, %d, %d);"
+                    .formatted(student.getIdUser(), student.getIdGroup(), student.getReportCardId()));
+
+            return getLastInsertId();
+        } else {
+            new DatabaseError();
+            throw new SQLException();
+        }
+    }
 
     public ArrayList<String> getTaskQuestionsOneInMany(int idTask) throws SQLException {
         ResultSet id_questions = statementExecuteQuery(
