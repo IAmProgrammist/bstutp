@@ -481,10 +481,6 @@ public class SQLHandler {
                 .formatted(competence.getName(), competence.getDescription(), idCompetence));
     }
 
-//    public ArrayList<Integer> getIdTasksByIndicator(int idIndicator) {
-//        statementExecuteQuery("")
-//    }
-
     public IndicatorsRow getIndicator(int idIndicator) throws SQLException {
         ResultSet competence = statementExecuteQuery("SELECT * FROM indicators WHERE id=%d LIMIT 1;"
                 .formatted(idIndicator));
@@ -518,6 +514,33 @@ public class SQLHandler {
         }
 
         return idTasks;
+    }
+
+    public void addEducationalProgram(EducationalProgramsRow educationalProgram) throws SQLException {
+        statementExecute("INSERT INTO educational_programs (name) VALUES ('%s');"
+                .formatted(educationalProgram.getName()));
+    }
+
+    public void delEducationalProgram(int idEducationalProgram) throws SQLException {
+        statementExecute("DELETE FROM educational_programs WHERE id=%d;".formatted(idEducationalProgram));
+    }
+
+    public void updateEducationalProgram(int idEducationalProgram, EducationalProgramsRow educationalProgram) throws SQLException {
+        statementExecute("UPDATE educational_programs SET name='%s' WHERE id=%d;"
+                .formatted(educationalProgram.getName(), idEducationalProgram));
+    }
+
+    public EducationalProgramsRow getEducationalProgram(int idEducationalProgram) throws SQLException {
+        ResultSet educationalProgram = statementExecuteQuery("SELECT * FROM educational_programs WHERE id=%d LIMIT 1;"
+                .formatted(idEducationalProgram));
+        return new EducationalProgramsRow(educationalProgram.getString("name")); // TODO: 30.07.2023 тз в телеге
+    }
+
+    public void connectEducationalProgramsWithCompetences(int idEducationalProgram, ArrayList<Integer> idCompetences) throws SQLException {
+        for (int idCompetence: idCompetences) {
+            statementExecute("INSERT INTO educational_programs_competences (id_educational_program, id_competence) VALUES (%d, %d);"
+                    .formatted(idEducationalProgram, idCompetence));
+        }
     }
 }
 

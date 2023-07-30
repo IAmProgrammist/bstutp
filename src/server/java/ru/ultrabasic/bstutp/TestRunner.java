@@ -27,43 +27,43 @@ public class TestRunner {
         this.resp = resp;
     }
 
-    public void startTest() throws SQLException, IOException, InterruptedException {
-        SQLHandler sqlHandler = new SQLHandler();
-        Test test = sqlHandler.getTestWithQuestions(idTest);
-
-        // создание json объекта
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("time", test.getTime());
-        JSONArray jsonTasks = new JSONArray();
-        JSONObject jsonObjectSub = new JSONObject();
-        for (Task task : test.getTasks()) {
-            jsonObjectSub.put("taskType", task.getTaskType());
-            jsonObjectSub.put("description", task.getDescription());
-            if (task.getTaskType() == TaskTypes.ONE_IN_MANY) {
-                JSONArray jsonTaskQuestions = new JSONArray();
-                for (String taskQuestion : task.getTaskQuestions())
-                    jsonTaskQuestions.put(taskQuestion);
-                jsonObjectSub.put("taskQuestions", jsonTaskQuestions);
-            }
-            jsonTasks.put(jsonObjectSub);
-        }
-
-        // отправка json объекта с текстом теста
-        resp.setContentType("application/json");
-        resp.getWriter().print(jsonObject);
-
-        eventMapWithSolution.put(sessionKey, "start_test");
-
-        Timer runTimer = new Timer();
-        runTimer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-
-            }
-        }, test.getTime());
-//        Thread.sleep(test.getTime());
-
-    }
+//    public void startTest() throws SQLException, IOException, InterruptedException {
+//        SQLHandler sqlHandler = new SQLHandler();
+////        Test test = sqlHandler.getTestWithQuestions(idTest);
+//
+//        // создание json объекта
+//        JSONObject jsonObject = new JSONObject();
+//        jsonObject.put("time", test.getTime());
+//        JSONArray jsonTasks = new JSONArray();
+//        JSONObject jsonObjectSub = new JSONObject();
+//        for (Task task : test.getTasks()) {
+//            jsonObjectSub.put("taskType", task.getTaskType());
+//            jsonObjectSub.put("description", task.getDescription());
+//            if (task.getTaskType() == TaskTypes.ONE_IN_MANY) {
+//                JSONArray jsonTaskQuestions = new JSONArray();
+//                for (String taskQuestion : task.getTaskQuestions())
+//                    jsonTaskQuestions.put(taskQuestion);
+//                jsonObjectSub.put("taskQuestions", jsonTaskQuestions);
+//            }
+//            jsonTasks.put(jsonObjectSub);
+//        }
+//
+//        // отправка json объекта с текстом теста
+//        resp.setContentType("application/json");
+//        resp.getWriter().print(jsonObject);
+//
+//        eventMapWithSolution.put(sessionKey, "start_test");
+//
+//        Timer runTimer = new Timer();
+//        runTimer.schedule(new TimerTask() {
+//            @Override
+//            public void run() {
+//
+//            }
+//        }, test.getTime());
+////        Thread.sleep(test.getTime());
+//
+//    }
 
     static private Map<String, String> eventMapWithSolution = new HashMap<>(20);
     private void endTest() {
