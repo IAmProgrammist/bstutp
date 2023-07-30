@@ -1,4 +1,5 @@
 package ru.ultrabasic.bstutp.data.models.records;
 
-public record Discipline(int id, String name) {
-}
+import java.util.ArrayList;
+
+public record Discipline(Integer id, String name, ArrayList<Integer> idCompetences) {}
