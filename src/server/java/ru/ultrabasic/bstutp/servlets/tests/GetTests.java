@@ -66,12 +66,12 @@ public class GetTests extends HttpServlet {
             } else {
                 if ("draft".equals(taskType)) {
                     new TeacherTestsListDraft()
-                            .writeToResponse(resp, getTasksByPage(SQLHandler.getTeacherTasksDraft(userId), page), userInfo);
+                            .writeToResponse(resp, getTasksByPage(SQLHandler.getTeacherTestsDraft(userId), page), userInfo);
                 } else if (userInfo.userType == UserTypes.ADMIN && "admin".equals(taskType)) {
                     // TODO: вернуть значения для админки
                 } else {
                     new TeacherTestsListActive()
-                            .writeToResponse(resp, getTasksByPage(SQLHandler.getTeacherTasksActive(userId), page), userInfo);
+                            .writeToResponse(resp, getTasksByPage(SQLHandler.getTeacherTestsActive(userId), page), userInfo);
                 }
             }
         } catch (SQLException e) {

@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import ru.ultrabasic.bstutp.data.SQLHandler;
+import ru.ultrabasic.bstutp.data.models.TaskTypes;
 import ru.ultrabasic.bstutp.data.models.tasks.Task;
 import ru.ultrabasic.bstutp.data.models.Test;
 
@@ -26,10 +27,10 @@ public class TestRunner {
         this.resp = resp;
     }
 
-    // TODO: наработки по хранению теста в ОЗУ
-    /*public void startTest() throws SQLException, IOException, InterruptedException {
-        SQLHandler sqlHandler = new SQLHandler();
-        Test test = sqlHandler.getTest(idTest);
+    //TODO: наработки по другому виду хранения тестов
+    public void startTest() throws SQLException, IOException, InterruptedException {
+        /*SQLHandler sqlHandler = new SQLHandler();
+        Test test = sqlHandler.getTestWithQuestions(idTest);
 
         // создание json объекта
         JSONObject jsonObject = new JSONObject();
@@ -39,7 +40,7 @@ public class TestRunner {
         for (Task task : test.getTasks()) {
             jsonObjectSub.put("taskType", task.getTaskType());
             jsonObjectSub.put("description", task.getDescription());
-            if (task.getTaskType() == 0) {
+            if (task.getTaskType() == TaskTypes.ONE_IN_MANY) {
                 JSONArray jsonTaskQuestions = new JSONArray();
                 for (String taskQuestion : task.getTaskQuestions())
                     jsonTaskQuestions.put(taskQuestion);
@@ -61,9 +62,9 @@ public class TestRunner {
 
             }
         }, test.getTime());
-//        Thread.sleep(test.getTime());
+//        Thread.sleep(test.getTime());*/
 
-    }*/
+    }
 
     static private Map<String, String> eventMapWithSolution = new HashMap<>(20);
     private void endTest() {
