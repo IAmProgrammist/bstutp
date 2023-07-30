@@ -1,10 +1,12 @@
 package ru.ultrabasic.bstutp.data.models.tasks.oneinmany;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 import ru.ultrabasic.bstutp.data.models.tasks.Task;
 import ru.ultrabasic.bstutp.data.models.tasks.TaskTypes;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class TaskOneInMany extends Task {
@@ -17,13 +19,17 @@ public class TaskOneInMany extends Task {
     }
 
     public JSONObject getJSONObject() {
-        JSONObject object = new JSONObject();
+        JSONObject object = super.getJSONObject();
 
-        object.put("id", id);
-        object.put("order", order);
-        object.put("description", description);
-        object.put("ownerId", ownerId);
-        object.put("taskType", taskType.type);
+        JSONArray questionPullJSONArray = new JSONArray();
+        for (TaskOneInManyQuestion question : this.questionPull) {
+            JSONObject questionJSON = new JSONObject();
+            questionJSON.put("id", question.id());
+            questionJSON.put("text", question.text());
+
+            questionPullJSONArray.put(questionJSON);
+        }
+        object.put("questionPull", questionPullJSONArray);
 
         return object;
     }

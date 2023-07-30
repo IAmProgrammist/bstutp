@@ -21,7 +21,8 @@ public class TestManager {
                 testInfo.put("test", questionsOnlyTest.getJSONObject());
                 break;
             case COMPLETED:
-                // Get report
+                Report fullTest = SQLHandler.getReportWithAnswers(testId, userId);
+                testInfo.put("test", fullTest.getJSONObject());
                 break;
             case DRAFT:
                 // Teacher func

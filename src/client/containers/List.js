@@ -1,11 +1,13 @@
 import React, {useEffect} from 'react';
 import style from '../assets/list.css'
 import Header from '../elements/Header'
-import {useNavigate} from "react-router-dom";
+import Score from '../elements/Score'
+import {useNavigate, useLocation} from "react-router-dom";
 
 let List = props => {
     let baseURL = window.location.origin;
     const navigate = useNavigate();
+    const location = useLocation();
 
     let {
         userType,
@@ -21,7 +23,7 @@ let List = props => {
     } = props.mainlistData;
 
     let {
-        setListFetching, setListData
+        setListFetching, setListData, changeSlot
     } = props.mainlistFuncs;
 
     let {
@@ -41,9 +43,7 @@ let List = props => {
             })
                 .then(res => {
                     setListFetching(false);
-                    if (res.ok)
-                        navigate("/tests");
-                    else
+                    if (!res.ok)
                         navigate("/login");
 
                     return res.json();
@@ -61,37 +61,96 @@ let List = props => {
         }, []
     );
 
+    useEffect(() => {
+            setListFetching(true);
+
+            fetch(baseURL + "/api/tests/list?task_type=" + new URL(window.location.href).searchParams.get("task_type"), {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                credentials: "include"
+            })
+                .then(res => {
+                    setListFetching(false);
+                    if (!res.ok)
+                        navigate("/login");
+
+                    return res.json();
+                })
+                .then(res => {
+                    setListFetching(false);
+
+                    setListData(res);
+                })
+                .catch(res => {
+                    setListFetching(false);
+                    console.error("Vlad please fix this, something really bad happened");
+                    console.error(res.stack);
+                })
+        }, [currentSlot]
+    );
+
 
     const renderNav = () => {
         if (userType === "student") {
             return <div className={"list__navigator_items"}>
-                <ul className={"list__navigator_items"}>
-                    <li className={"list__navigatoritem " + (currentSlot === "active" ? "list__navigatoritem_state_active" : "")}>Активные
+                <div className={"list__navigator_items"}>
+                    <a href={"#"} onClick={(ev) => {
+                        ev.preventDefault();
+                        if (currentSlot !== "active") { navigate("/tests?task_type=active"); changeSlot("active");}
+                    }}
+                       className={"list__navigatoritem " + (currentSlot === "active" ? "list__navigatoritem_state_active" : "")}>Активные
                         тесты
-                    </li>
-                    <li className={"list__navigatoritem " + (currentSlot === "completed" ? "list__navigatoritem_state_active" : "")}>Результаты</li>
-                </ul>
+                    </a>
+                    <a href={"#"} onClick={(ev) => {
+                        ev.preventDefault();
+                        if (currentSlot !== "completed") {navigate("/tests?task_type=completed"); changeSlot("completed")}
+                    }}
+                       className={"list__navigatoritem " + (currentSlot === "completed" ? "list__navigatoritem_state_active" : "")}>Результаты</a>
+                </div>
                 <hr/>
             </div>
         } else if (userType === "teacher") {
             return <div className={"list__navigator_items"}>
-                <ul className={"list__navigator_items"}>
-                    <li className={"list__navigatoritem " + (currentSlot === "active" ? "list__navigatoritem_state_active" : "")}>Активные
+                <div className={"list__navigator_items"}>
+                    <a href={"#"} onClick={(ev) => {
+                        ev.preventDefault();
+                        if (currentSlot !== "active") { navigate("/tests?task_type=active"); changeSlot("active");}
+                    }}
+                       className={"list__navigatoritem " + (currentSlot === "active" ? "list__navigatoritem_state_active" : "")}>Активные
                         тесты
-                    </li>
-                    <li className={"list__navigatoritem " + (currentSlot === "draft" ? "list__navigatoritem_state_active" : "")}>Черновики</li>
-                </ul>
+                    </a>
+                    <a href={"#"} onClick={(ev) => {
+                        ev.preventDefault();
+                        if (currentSlot !== "draft") { navigate("/tests?task_type=draft"); changeSlot("draft");}
+                    }}
+                       className={"list__navigatoritem " + (currentSlot === "draft" ? "list__navigatoritem_state_active" : "")}>Черновики</a>
+                </div>
                 <hr/>
             </div>
         } else if (userType === "admin") {
             return <div className={"list__navigator_items"}>
-                <ul className={"list__navigator_items"}>
-                    <li className={"list__navigatoritem " + (currentSlot === "active" ? "list__navigatoritem_state_active" : "")}>Активные
+                <div className={"list__navigator_items"}>
+                    <a href={"#"} onClick={(ev) => {
+                        ev.preventDefault();
+                        if (currentSlot !== "active") { navigate("/tests?task_type=active"); changeSlot("active");}
+                    }}
+                       className={"list__navigatoritem " + (currentSlot === "active" ? "list__navigatoritem_state_active" : "")}>Активные
                         тесты
-                    </li>
-                    <li className={"list__navigatoritem " + (currentSlot === "draft" ? "list__navigatoritem_state_active" : "")}>Черновики</li>
-                    <li className={"list__navigatoritem " + (currentSlot === "admin" ? "list__navigatoritem_state_active" : "")}>Админка</li>
-                </ul>
+                    </a>
+                    <a href={"#"} onClick={(ev) => {
+                        ev.preventDefault();
+                        if (currentSlot !== "draft") { navigate("/tests?task_type=draft"); changeSlot("draft");}
+                    }}
+                       className={"list__navigatoritem " + (currentSlot === "draft" ? "list__navigatoritem_state_active" : "")}>Черновики</a>
+                    <a href={"#"} onClick={(ev) => {
+                        ev.preventDefault();
+                        if (currentSlot !== "admin") { navigate("/tests?task_type=admin"); changeSlot("admin");}
+                    }}
+                       className={"list__navigatoritem " + (currentSlot === "admin" ? "list__navigatoritem_state_active" : "")}>Админка</a>
+                </div>
                 <hr/>
             </div>
         }
@@ -106,33 +165,7 @@ let List = props => {
 
         renderStudentTestsActive = (test) => {
             return <li className={"list__testitem"} onClick={(ev) => {
-                setListFetching(true);
-
-                fetch(baseURL + "/api/tests/test?id_test=" + test.id, {
-                    method: 'GET',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    },
-                    credentials: "include"
-                })
-                    .then(res => {
-                        setListFetching(false);
-                        if (res.ok)
-                            navigate("/test?id_test=" + test.id);
-
-                        return res.json();
-                    })
-                    .then(res => {
-                        setListFetching(false);
-
-                        setTestData(res);
-                    })
-                    .catch(res => {
-                        setListFetching(false);
-                        console.error("Vlad please fix this, something really bad happened");
-                        console.error(res.stack);
-                    })
+                navigate("/test?id_test=" + test.id);
             }}>
                 <div className={"list__testitem_info"}>
                     <div className={"list__testitem_info_title"}>{test.name}</div>
@@ -142,14 +175,28 @@ let List = props => {
                 </div>
             </li>
         }
+    } else if (userType === "student" && currentSlot === "completed") {
+        testsArray = completed;
+
+        renderStudentTestsActive = (test) => {
+            return <li className={"list__testitem"} onClick={(ev) => {
+                navigate("/test?id_test=" + test.id);
+            }}>
+                <div className={"list__testitem_info"}>
+                    <div className={"list__testitem_info_title"}>{test.name}</div>
+                    <div
+                        className={"list__testitem_info_sub"}>{test.discipline + " • " + Math.floor(test.duration / 60 / 10) + Math.floor(test.duration / 60) % 10 +
+                        " мин. " + Math.floor(test.duration % 60 / 10) + test.duration % 60 % 10 + " сек."}</div>
+                </div>
+                <Score score={test.result} width={60} height={30} fontSize={20}/>
+            </li>
+        }
     }
 
     let mapper = (testss) => {
         if (testss)
             return testss.map(test => renderStudentTestsActive(test));
     }
-
-    console.log(props);
 
     return <div>
         <Header showBackButton={false} showAddButton={userType !== "student"} showExportButton={false}

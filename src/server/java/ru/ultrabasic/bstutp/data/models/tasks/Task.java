@@ -3,6 +3,7 @@ package ru.ultrabasic.bstutp.data.models.tasks;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 public abstract class Task {
     public int id;
@@ -29,5 +30,17 @@ public abstract class Task {
         object.put("taskType", taskType.type);
 
         return object;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Task task)) return false;
+        return id == task.id;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }

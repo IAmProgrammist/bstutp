@@ -27,6 +27,15 @@
         <url-pattern>/tests</url-pattern>
     </servlet-mapping>
 
+    <servlet>
+        <servlet-name>testpage</servlet-name>
+        <jsp-file>/index.html</jsp-file>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>testpage</servlet-name>
+        <url-pattern>/test</url-pattern>
+    </servlet-mapping>
+
     <jsp-config>
         <jsp-property-group>
             <url-pattern>*.jsp</url-pattern>

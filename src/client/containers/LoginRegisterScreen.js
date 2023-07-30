@@ -47,7 +47,6 @@ let LoginRegisterScreen = props => {
             })
             .then(res => res.json())
             .then(res => {
-                console.log(res);
                 loginRegisterFetching(false);
 
                 switch (res.type) {

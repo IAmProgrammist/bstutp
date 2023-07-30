@@ -1,18 +1,11 @@
 package ru.ultrabasic.bstutp;
 
 import jakarta.servlet.http.HttpServletResponse;
-import org.json.JSONArray;
-import org.json.JSONObject;
-import ru.ultrabasic.bstutp.data.SQLHandler;
-import ru.ultrabasic.bstutp.data.models.tasks.Task;
-import ru.ultrabasic.bstutp.data.models.Test;
 
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
 
 public class TestRunner {
     private int time;

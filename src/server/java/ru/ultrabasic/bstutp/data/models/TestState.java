@@ -6,7 +6,7 @@ public enum TestState {
     DRAFT("draft"),
     EDITABLE("editable"),
     RUNNING("running"),
-    COMPLETED("ended");
+    COMPLETED("completed");
 
     public final String type;
     TestState(String type) {

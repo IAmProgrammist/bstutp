@@ -45,26 +45,42 @@ const mainlistSlice = createSlice({
 
             switch (payload.type) {
                 case 'tests_completed_students':
-                    state.currentSlot = "completed";
+                    if (state.currentSlot !== "completed")
+                        state.currentSlot = "completed";
                     break;
                 case 'tests_active_teacher':
                 case 'tests_active_students':
-                    state.currentSlot = "active";
+                    if (state.currentSlot !== "active")
+                        state.currentSlot = "active";
                     break;
                 case 'tests_draft_teacher':
-                    state.currentSlot = "draft";
+                    if (state.currentSlot !== "draft")
+                        state.currentSlot = "draft";
                     break;
             }
 
             state[state.currentSlot].maxPages = payload.tests.totalPages;
             state[state.currentSlot].currentPage = payload.tests.currentPage;
             state[state.currentSlot].data = [...payload.tests.data];
+        },
+        setUserData: (state, action) => {
+            const payload = action.payload;
+            state.userName = payload.userInfo.name;
+            state.userSurname = payload.userInfo.surname;
+            state.userPatronymic = payload.userInfo.patronymic;
+            state.userType = payload.userInfo.userType;
+
+            state.headerName = state.userSurname + " " +
+                state.userName[0] + "." + (state.userPatronymic ? " " + state.userPatronymic[0] + "." : "");
+        },
+        changeSlot: (state, action) => {
+            state.currentSlot = action.payload;
         }
     }
 });
 
 export const {
-    setListFetching, setListData
+    setListFetching, setListData, setUserData, changeSlot
 } = mainlistSlice.actions;
 
 export default mainlistSlice.reducer;

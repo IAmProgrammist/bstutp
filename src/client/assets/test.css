@@ -27,4 +27,67 @@
 
 .test {
     margin-top: 50px;
+    position: relative;
+}
+
+.test__timer {
+    display: inline-block;
+    position: absolute;
+    right: 20px;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.test__fetch_status {
+    display: inline-block;
+    position: absolute;
+    left: 20px;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.test__running_title {
+    font-size: 30px;
+    margin-bottom: 15px;
+    color: #24292e;
+    font-weight: bold;
+    text-align: center;
+}
+
+.test__task {
+    padding: 20px;
+    background-color: white;
+    border-radius: 20px;
+    box-shadow: 10px 5px 5px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+.test__task_description {
+    font-size: 20px;
+    margin-bottom: 15px;
+    color: #24292e;
+}
+
+.test__task_button {
+    float: right;
+    margin-left: 15px;
+}
+
+.test__answer_correct {
+    border-color: green;
+    color: green;
+}
+
+.test__answer_fail {
+    border-color: red;
+    color: red;
+}
+
+.test__running_title .score {
+    display: inline-block;
+    margin-left: 10px;
+}
+
+input.test__answer {
+    display: block;
 }

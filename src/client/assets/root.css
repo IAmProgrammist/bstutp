@@ -87,3 +87,11 @@ h1 {
     background-color: dodgerblue;
     border-color: white;
 }
+
+input[type='text'] {
+    border-radius: 20px;
+    padding: 10px;
+    background-color: white;
+    border-color: #24292e;
+    border-width: 1px;
+}

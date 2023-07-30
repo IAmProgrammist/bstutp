@@ -11,15 +11,14 @@ import {setErrorMail, setErrorPassword} from "../slices/loginReducer";
 import Header from "../elements/Header";
 import List from "./List";
 import Test from "./Test"
+import Score from "../elements/Score"
 
 let App = props => {
     return <div>
-        <FetchScreen isFetching={props.loginData.isFetching || props.mainlistData.isFetching || props.testData.isFetching}/>
+        <FetchScreen isFetching={props.loginData.isFetching || props.mainlistData.isFetching}/>
         <Router>
             <Routes>
-                <Route exact path="/" element={<Header showBackButton={true} showAddButton={true} showExportButton={true}
-                                                       userInfo={"Пахомов В.А."} onUserClick={() => console.log("eheh")}
-                                                       onBackClicked={() => {console.log("back")}} onAddClicked={() => {console.log("add")}} onExportClicked={() => console.log("export")}/>}/>
+                <Route exact path="/" element={<Score score={1} width={200} height={100} fontSize={70}/>}/>
                 <Route exact path="/login" element={<div className="container">
                     <LoginRegisterScreen
                         loginData={props.loginData}
@@ -39,6 +38,7 @@ let App = props => {
                         testData={props.testData}
                         testFuncs={props.testFuncs}
                         mainlistData={props.mainlistData}
+                        mainlistFuncs={props.mainlistFuncs}
                         />
                 }/>
             </Routes>
@@ -66,12 +66,19 @@ let mapDispatchToProps = (dispatch) => {
         },
         mainlistFuncs: {
             setListFetching: (ev) => dispatch(MainlistFuncs.setListFetching(ev)),
-            setListData: (data) => dispatch(MainlistFuncs.setListData(data))
+            setListData: (data) => dispatch(MainlistFuncs.setListData(data)),
+            setUserData: (data) => dispatch(MainlistFuncs.setUserData(data)),
+            changeSlot: (slot) => dispatch(MainlistFuncs.changeSlot(slot))
         },
         testFuncs: {
             setTestData: (ev) => dispatch(TestFuncs.setTestData(ev)),
             setTestFetching: (fetching) => dispatch(TestFuncs.setTestFetching(fetching)),
-            setTestAnswer: (setAnswer) => dispatch(TestFuncs.setTestAnswer(setAnswer))
+            setTestAnswer: (taskId, answer) => dispatch(TestFuncs.setTestAnswer({data: answer, taskId})),
+            clearTimerID: () => dispatch(TestFuncs.clearTimerID()),
+            setTimerID: (timerID) => dispatch(TestFuncs.setTimerID(timerID)),
+            updateTimerVal: () => dispatch(TestFuncs.updateTimerVal()),
+            setTestFetchError: (val) => dispatch(TestFuncs.setTestFetchError(val)),
+            setInputTimerID: (val) => dispatch(TestFuncs.setInputTimerID(val))
         }
     }
 }
