@@ -1,12 +1,23 @@
 package ru.ultrabasic.bstutp.data.models;
 
 public class DirectionsRow {
+    private Integer id;
     private String espfCode;
     private String espfName;
     private String code;
     private String name;
-    private int idLevel;
+    private LevelTypes levelType;
     private int educationalProgram;
+
+    public DirectionsRow(int id, String espfCode, String espfName, String code, String name, LevelTypes levelType, int educationalProgram) {
+        this.id = id;
+        this.espfCode = espfCode;
+        this.espfName = espfName;
+        this.code = code;
+        this.name = name;
+        this.levelType = levelType;
+        this.educationalProgram = educationalProgram;
+    }
 
     public DirectionsRow(String espfCode, String espfName, String code, String name) {
         this.espfCode = espfCode;
@@ -15,20 +26,24 @@ public class DirectionsRow {
         this.name = name;
     }
 
-    public DirectionsRow(String espfCode, String espfName, String code, String name, int idLevel, int educationalProgram) {
+    public DirectionsRow(String espfCode, String espfName, String code, String name, LevelTypes levelType, int educationalProgram) {
         this.espfCode = espfCode;
         this.espfName = espfName;
         this.code = code;
         this.name = name;
-        this.idLevel = idLevel;
+        this.levelType = levelType;
         this.educationalProgram = educationalProgram;
     }
 
-    public int getIdLevel() {
-        return idLevel;
+    public Integer getId() {
+        return id;
     }
 
-    public int getEducationalProgram() {
+    public LevelTypes getIdLevel() {
+        return levelType;
+    }
+
+    public int getIdEducationalProgram() {
         return educationalProgram;
     }
 

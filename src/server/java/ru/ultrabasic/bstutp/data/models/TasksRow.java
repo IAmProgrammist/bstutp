@@ -3,6 +3,21 @@ package ru.ultrabasic.bstutp.data.models;
 import ru.ultrabasic.bstutp.data.models.tasks.TaskTypes;
 
 public class TasksRow {
+    private Integer id;
+
+    public Integer getId() {
+        return id;
+    }
+
+    public TasksRow(int id, int idTest, int order, TaskTypes taskType, String description, int idOwner) {
+        this.id = id;
+        this.idTest = idTest;
+        this.order = order;
+        this.taskType = taskType;
+        this.description = description;
+        this.idOwner = idOwner;
+    }
+
     private int idTest;
     private int order;
     private TaskTypes taskType;

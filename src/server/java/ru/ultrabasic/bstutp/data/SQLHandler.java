@@ -9,6 +9,7 @@ import ru.ultrabasic.bstutp.data.models.tasks.oneinmany.TaskOneInManyQuestion;
 import ru.ultrabasic.bstutp.data.models.tasks.oneinmany.TaskOneInManyStudentAnswer;
 import ru.ultrabasic.bstutp.data.models.tasks.text.TaskText;
 import ru.ultrabasic.bstutp.data.models.tasks.text.TaskTextStudentAnswer;
+import ru.ultrabasic.bstutp.messages.errors.DatabaseError;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -515,11 +516,7 @@ public class SQLHandler {
     }
 
     public static int addUpdateUserWithInitPlaceInTableByUserType(UsersRow user) throws SQLException {
-        return addUpdateUserWithInitPlaceInTableByUserType(null, user);
-    }
-
-    public static int addUpdateUserWithInitPlaceInTableByUserType(Integer idUser, UsersRow user) throws SQLException {
-        if (idUser == null) {
+        if (user.getId() == null) {
             // add
             if (user.getPatronymic() == null)
                 statementExecute("INSERT INTO users (login, password, user_type, name, surname) VALUES ('%s', '%s', %d, '%s', '%s');"
@@ -528,7 +525,7 @@ public class SQLHandler {
                 statementExecute("INSERT INTO users (login, password, user_type, name, surname, patronymic) VALUES ('%s', '%s', %d, '%s', '%s', '%s');"
                         .formatted(user.getLogin(), user.getPassword(), user.getUserType().id, user.getName(), user.getSurname(), user.getPatronymic()));
 
-            idUser = getLastInsertId();
+            int idUser = getLastInsertId();
             if (user.getUserType() == UserTypes.STUDENT)
                 statementExecute("INSERT INTO students (id_user) VALUES (%d);".formatted(idUser));
             else if (user.getUserType() == UserTypes.TEACHER)
@@ -537,89 +534,157 @@ public class SQLHandler {
                 statementExecute("INSERT INTO admins (id_user) VALUES (%d);".formatted(idUser));
 
             return idUser;
-        } else if (idUser > 0) {
+        } else if (user.getId() > 0) {
             // update
             if (user.getPatronymic() == null)
                 statementExecute("UPDATE users SET login='%s', password='%s', user_type=%d, name='%s', surname='%s' WHERE id=%d);"
-                        .formatted(user.getLogin(), user.getPassword(), user.getUserType().id, user.getName(), user.getSurname(), idUser));
+                        .formatted(user.getLogin(), user.getPassword(), user.getUserType().id, user.getName(), user.getSurname(), user.getId()));
             else
                 statementExecute("UPDATE users SET login='%s', password='%s', name='%s', surname='%s', patronymic='%s' WHERE id=%d);"
-                        .formatted(user.getLogin(), user.getPassword(), user.getName(), user.getSurname(), user.getPatronymic(), idUser));
+                        .formatted(user.getLogin(), user.getPassword(), user.getName(), user.getSurname(), user.getPatronymic(), user.getId()));
 
-            return idUser;
-        } else
-            return -1;
+            return user.getId();
+        } else {
+            new DatabaseError();
+            throw new SQLException();
+        }
     }
 
     public int addUpdateCompetence(CompetencesRow competence) throws SQLException {
-        return addUpdateCompetence(null, competence);
-    }
-
-    public int addUpdateCompetence(Integer idCompetence, CompetencesRow competence) throws SQLException {
-        if (idCompetence == null) {
+        if (competence.getId() == null) {
             // add
             statementExecute("INSERT INTO competences (name, description) VALUES ('%s', '%s');"
                     .formatted(competence.getName(), competence.getDescription()));
 
             return getLastInsertId();
-        } else if (idCompetence > 0) {
+        } else if (competence.getId() > 0) {
             // update
             statementExecute("UPDATE competence SET name='%s', description='%s' WHERE id=%d;"
-                    .formatted(competence.getName(), competence.getDescription(), idCompetence));
+                    .formatted(competence.getName(), competence.getDescription(), competence.getId()));
 
-            return idCompetence;
-        } else
-            return -1;
+            return competence.getId();
+        } else {
+            new DatabaseError();
+            throw new SQLException();
+        }
     }
 
     public int addUpdateIndicator(IndicatorsRow indicator) throws SQLException {
-        return addUpdateIndicator(null, indicator);
-    }
-
-    public int addUpdateIndicator(Integer idIndicator, IndicatorsRow indicator) throws SQLException {
         // проверка наличия компетенции по id
-        if (statementExecuteQuery("SELECT * FROM competence WHERE id=%d LIMIT 1;"
+        if (!statementExecuteQuery("SELECT * FROM competence WHERE id=%d LIMIT 1;"
                 .formatted(indicator.getIdCompetence())).next()) {
-            if (idIndicator == null) {
-                // add
-                statementExecute("INSERT INTO indicators (name, sub_id, id_competence) VALUES ('%s', %d, %d);"
-                        .formatted(indicator.getName(), indicator.getSubId(), indicator.getIdCompetence()));
-
-                return getLastInsertId();
-            } else if (idIndicator > 0) {
-                // update
-
-                statementExecute("UPDATE indicators SET name='%s', sub_id=%d, id_competence=%d WHERE id=%d;"
-                        .formatted(indicator.getName(), indicator.getSubId(), indicator.getIdCompetence(), idIndicator));
-
-                return idIndicator;
-            }
-
+            new DatabaseError();
+            throw new SQLException(); // TODO: 30.07.2023 сделать автодополненние sub_id
         }
 
-        return -1; // TODO: 30.07.2023 сделать автодополненние sub_id
-    }
-
-    public int addUpdateEducationalPrograms(CompetencesRow competence) throws SQLException {
-        return addUpdateEducationalPrograms(null, competence);
-    } // FIXME: 30.07.2023 пока неготово
-
-    public int addUpdateEducationalPrograms(Integer idCompetence, CompetencesRow competence) throws SQLException {
-        if (idCompetence == null) {
+        if (indicator.getId() == null) {
             // add
-            statementExecute("INSERT INTO competences (name, description) VALUES ('%s', '%s');"
-                    .formatted(competence.getName(), competence.getDescription()));
+            statementExecute("INSERT INTO indicators (name, sub_id, id_competence) VALUES ('%s', %d, %d);"
+                    .formatted(indicator.getName(), indicator.getSubId(), indicator.getIdCompetence()));
 
             return getLastInsertId();
-        } else if (idCompetence > 0) {
+        } else if (indicator.getId() > 0) {
             // update
-            statementExecute("UPDATE competence SET name='%s', description='%s' WHERE id=%d;"
-                    .formatted(competence.getName(), competence.getDescription(), idCompetence));
+            statementExecute("UPDATE indicators SET name='%s', sub_id=%d, id_competence=%d WHERE id=%d;"
+                    .formatted(indicator.getName(), indicator.getSubId(), indicator.getIdCompetence(), indicator.getId()));
 
-            return idCompetence;
-        } else
-            return -1;
-    } // FIXME: 30.07.2023 пока неготово
+            return indicator.getId();
+        } else {
+            new DatabaseError();
+            throw new SQLException();
+        }
+    }
+
+
+    public int addUpdateEducationalPrograms(EducationalProgramsWithIdCompetences educationalProgram) throws SQLException {
+        int idEducationalProgram;
+        if (educationalProgram.getId() == null) {
+            // add
+            statementExecute("INSERT INTO educational_programs (name) VALUES ('%s');"
+                    .formatted(educationalProgram.getName()));
+
+            idEducationalProgram = getLastInsertId();
+        } else if (educationalProgram.getId() > 0) {
+            // update
+            statementExecute("UPDATE educational_programs SET name='%s' WHERE id=%d;"
+                    .formatted(educationalProgram.getName(), educationalProgram.getId()));
+
+            idEducationalProgram = educationalProgram.getId();
+        } else {
+            new DatabaseError();
+            throw new SQLException();
+        }
+
+        // refresh id of competences
+        if (educationalProgram.getIdCompetences() != null) {
+            statementExecute("DELETE FROM educational_programs_competences WHERE id_educational_program=%d;".formatted(idEducationalProgram));
+            for (int idCompetence : educationalProgram.getIdCompetences())
+                statementExecute("INSERT INTO educational_programs_competences (id_educational_program, id_competences) VALUES (%d, %d);"
+                        .formatted(idEducationalProgram, idCompetence));
+        }
+
+        return idEducationalProgram;
+    }
+
+    public int addUpdateDirection(DirectionsRow direction) throws SQLException {
+        if (!statementExecuteQuery("SELECT * FROM educational_programs WHERE id=%d LIMIT 1;"
+                .formatted(direction.getIdEducationalProgram())).next()) {
+            new DatabaseError();
+            throw new SQLException();
+        }
+
+        if (direction.getId() == null) {
+            // add
+            statementExecute(
+                    ("INSERT INTO directions (id_level, espf_code, espf_name, code, name, id_educational_program) " +
+                            "VALUES (%d, '%s', '%s','%s','%s', %d);").formatted(
+                            direction.getIdLevel().id, direction.getEspfCode(), direction.getEspfName(),
+                            direction.getCode(), direction.getName(), direction.getIdEducationalProgram())
+            );
+            return getLastInsertId();
+        } else if (direction.getId() > 0) {
+            // update
+            statementExecute(("UPDATE directions SET id_level=%d, espf_code='%s', espf_name='%s', code='%s', name='%s', " +
+                    "id_educational_program=%d WHERE id=%d;").formatted(direction.getIdLevel().id, direction.getEspfCode(),
+                    direction.getEspfName(), direction.getCode(), direction.getName(), direction.getIdEducationalProgram(), direction.getId()));
+
+            return direction.getId();
+        } else {
+            new DatabaseError();
+            throw new SQLException();
+        }
+    }
+
+    public int addUpdateDiscipline(DisciplineWithIdCompetences discipline) throws SQLException {
+        int idDiscipline;
+        if (discipline.getId() == null) {
+            // add
+            statementExecute("INSERT INTO discipline (name) VALUES ('%s');"
+                    .formatted(discipline.getName()));
+
+            idDiscipline = getLastInsertId();
+        } else if (discipline.getId() > 0) {
+            // update
+            statementExecute("UPDATE discipline SET name='%s' WHERE id=%d;"
+                    .formatted(discipline.getName(), discipline.getId()));
+
+            idDiscipline = discipline.getId();
+        } else {
+            new DatabaseError();
+            throw new SQLException();
+        }
+
+        // refresh id of competences
+        if (discipline.getIdCompetences() != null) {
+            statementExecute("DELETE FROM discipline_competence WHERE id_discipline=%d;".formatted(idDiscipline));
+            for (int idCompetence : discipline.getIdCompetences())
+                statementExecute("INSERT INTO discipline_competence (id_discipline, id_competences) VALUES (%d, %d);"
+                        .formatted(discipline.getId(), idCompetence));
+        }
+
+        return idDiscipline;
+    }
+
 
     public ArrayList<String> getTaskQuestionsOneInMany(int idTask) throws SQLException {
         ResultSet id_questions = statementExecuteQuery(
@@ -661,23 +726,8 @@ public class SQLHandler {
         return answer_correct.getString(1);
     }
 
-    public void addDirection(DirectionsRow direction, int idLevelType, int idEducationalPrograms) throws SQLException {
-        statementExecute(
-                ("INSERT INTO directions (id_level, espf_code, espf_name, code, name, id_educational_program) " +
-                        "VALUES (%d, '%s', '%s','%s','%s', %d);").formatted(
-                        idLevelType, direction.getEspfCode(), direction.getEspfName(),
-                        direction.getCode(), direction.getName(), idEducationalPrograms)
-        );
-    }
-
     public void delDirection(int id_direction) throws SQLException {
         statementExecute("DELETE FROM directions WHERE id=%d;".formatted(id_direction));
-    }
-
-    public void updateDirectionAll(int idDirections, DirectionsRow direction, int idLevelType, int idEducationalPrograms) throws SQLException {
-        statementExecute(("UPDATE directions SET id_level=%d, espf_code='%s', espf_name='%s', code='%s', name='%s', " +
-                "id_educational_program=%d WHERE id=%d;").formatted(idLevelType, direction.getEspfCode(),
-                direction.getEspfName(), direction.getCode(), direction.getName(), idEducationalPrograms, idDirections));
     }
 
     public void updateDirectionIdEducationalProgram(int idDirections, DirectionsRow direction, int idEducationalProgram) throws SQLException {
@@ -706,7 +756,7 @@ public class SQLHandler {
                 direction.getString("espf_name"),
                 direction.getString("code"),
                 direction.getString("name"),
-                direction.getInt("id_level"),
+                LevelTypes.fromID(direction.getInt("id_level")),
                 direction.getInt("id_educational_program"));
     }
 

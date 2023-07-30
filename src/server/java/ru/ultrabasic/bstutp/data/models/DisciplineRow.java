@@ -1,15 +1,18 @@
 package ru.ultrabasic.bstutp.data.models;
 
-public class EducationalProgramsRow {
+import java.util.ArrayList;
+
+public class DisciplineRow {
     private Integer id;
     private String name;
 
-    public EducationalProgramsRow(int id, String name) {
-        this.id = id;
+
+    public DisciplineRow(String name, ArrayList<Integer> idCompetences) {
         this.name = name;
     }
 
-    public EducationalProgramsRow(String name) {
+    public DisciplineRow(Integer id, String name, ArrayList<Integer> idCompetences) {
+        this.id = id;
         this.name = name;
     }
 

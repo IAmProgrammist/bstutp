@@ -1,6 +1,22 @@
 package ru.ultrabasic.bstutp.data.models;
 
 public class UsersRow {
+    private Integer id;
+
+    public Integer getId() {
+        return id;
+    }
+
+    public UsersRow(int id, String login, String password, UserTypes userType, String name, String surname, String patronymic) {
+        this.id = id;
+        this.login = login;
+        this.password = password;
+        this.userType = userType;
+        this.name = name;
+        this.surname = surname;
+        this.patronymic = patronymic;
+    }
+
     private String login;
     private String password;
     private UserTypes userType;
