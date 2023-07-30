@@ -2,12 +2,7 @@ package ru.ultrabasic.bstutp.data;
 
 import ru.ultrabasic.bstutp.Config;
 import ru.ultrabasic.bstutp.data.models.*;
-import ru.ultrabasic.bstutp.data.models.TestShort;
-import ru.ultrabasic.bstutp.data.models.UserInfo;
-import ru.ultrabasic.bstutp.data.models.UserTypes;
-import ru.ultrabasic.bstutp.data.models.DirectionsRow;
 import ru.ultrabasic.bstutp.data.models.tasks.Task;
-import ru.ultrabasic.bstutp.data.models.Test;
 import ru.ultrabasic.bstutp.data.models.tasks.TaskTypes;
 import ru.ultrabasic.bstutp.data.models.tasks.oneinmany.TaskOneInMany;
 import ru.ultrabasic.bstutp.data.models.tasks.oneinmany.TaskOneInManyQuestion;
@@ -322,10 +317,6 @@ public class SQLHandler {
         return true;
     }
 
-    private static ResultSet statementExecuteQuery(String sql) throws SQLException {
-        return connection.createStatement().executeQuery(sql);
-    }
-
     public static Test getTestQuestionsOnly(int idTest) throws SQLException {
         ResultSet testsRequest = connection.createStatement()
                 .executeQuery(("""
@@ -462,43 +453,182 @@ public class SQLHandler {
         return null;
     }
 
-    public Test getTest(int idTest) throws SQLException {
-        int time = connection.createStatement().executeQuery(
-                "SELECT time FROM tests WHERE id=%d LIMIT 1;"
-                        .formatted(idTest)).getInt(1);
+//    public Test getTest(int idTest) throws SQLException {
+//        int time = connection.createStatement().executeQuery(
+//                "SELECT time FROM tests WHERE id=%d LIMIT 1;"
+//                        .formatted(idTest)).getInt(1);
+//
+//        ResultSet tasks = connection.createStatement().executeQuery(
+//                "SELECT id, order, task_type, description FROM tasks ORDERED BY order WHERE id_test=%d;"
+//                        .formatted(idTest));
+//
+//        Test test = new Test(time);
+//        ArrayList<Task> taskArray = new ArrayList<>();
+//        while (tasks.next()) {
+//            ArrayList<String> taskQuestions = null;
+//            if (tasks.getInt("task_type") == TaskTypes.ONE_IN_MANY.id)
+//                taskQuestions = getTaskQuestionsOneInMany(tasks.getInt("id"));
+//
+//            taskArray.add(new Task(
+//                    tasks.getInt("order"),
+//                    TaskTypes.fromID(tasks.getInt("task_type")),
+//                    tasks.getString("description"),
+//                    taskQuestions
+//            ));
+//        }
+//
+//        test.setTasks(taskArray);
+//
+//        return test;
+//    }
 
-        ResultSet tasks = connection.createStatement().executeQuery(
-                "SELECT id, order, task_type, description FROM tasks ORDERED BY order WHERE id_test=%d;"
-                        .formatted(idTest));
-
-        Test test = new Test(time);
-        ArrayList<Task> taskArray = new ArrayList<>();
-        while (tasks.next()) {
-            ArrayList<String> taskQuestions = null;
-            if (tasks.getInt("task_type") == TaskTypes.ONE_IN_MANY.id)
-                taskQuestions = getTaskQuestionsOneInMany(tasks.getInt("id"));
-
-            taskArray.add(new Task(
-                    tasks.getInt("order"),
-                    TaskTypes.fromID(tasks.getInt("task_type")),
-                    tasks.getString("description"),
-                    taskQuestions
-            ));
-        }
-
-        test.setTasks(taskArray);
-
-        return test;
+    private static int getLastInsertId() throws SQLException {
+        return getOneRowExecuteQuery("SELECT LAST_INSERT_ID();").getInt(1);
     }
 
+    private static ResultSet getOneRowExecuteQuery(String sql) throws SQLException {
+        ResultSet rs = connection.createStatement().executeQuery(sql);
+        rs.next();
+
+        return rs;
+    }
+
+    private static void statementExecute(String sql) throws SQLException {
+        connection.createStatement().execute(sql);
+    }
+
+    private static ResultSet statementExecuteQuery(String sql) throws SQLException {
+        return connection.createStatement().executeQuery(sql);
+    }
+
+    public static UserInfo getUserInfo(int userId) throws SQLException {
+        ResultSet rs = connection.createStatement()
+                .executeQuery(("""
+                        SELECT name, surname, patronymic, user_type FROM users WHERE id=%d
+                                """.formatted(userId)
+                ));
+
+        if (rs.next())
+            return new UserInfo(userId, rs.getString(1), rs.getString(2), rs.getString(3), rs.getInt(4));
+
+        return null;
+    }
+
+    public static int addUpdateUserWithInitPlaceInTableByUserType(UsersRow user) throws SQLException {
+        return addUpdateUserWithInitPlaceInTableByUserType(null, user);
+    }
+
+    public static int addUpdateUserWithInitPlaceInTableByUserType(Integer idUser, UsersRow user) throws SQLException {
+        if (idUser == null) {
+            // add
+            if (user.getPatronymic() == null)
+                statementExecute("INSERT INTO users (login, password, user_type, name, surname) VALUES ('%s', '%s', %d, '%s', '%s');"
+                        .formatted(user.getLogin(), user.getPassword(), user.getUserType().id, user.getName(), user.getSurname()));
+            else
+                statementExecute("INSERT INTO users (login, password, user_type, name, surname, patronymic) VALUES ('%s', '%s', %d, '%s', '%s', '%s');"
+                        .formatted(user.getLogin(), user.getPassword(), user.getUserType().id, user.getName(), user.getSurname(), user.getPatronymic()));
+
+            idUser = getLastInsertId();
+            if (user.getUserType() == UserTypes.STUDENT)
+                statementExecute("INSERT INTO students (id_user) VALUES (%d);".formatted(idUser));
+            else if (user.getUserType() == UserTypes.TEACHER)
+                statementExecute("INSERT INTO teacher (id_user) VALUES (%d);".formatted(idUser));
+            else if (user.getUserType() == UserTypes.ADMIN)
+                statementExecute("INSERT INTO admins (id_user) VALUES (%d);".formatted(idUser));
+
+            return idUser;
+        } else if (idUser > 0) {
+            // update
+            if (user.getPatronymic() == null)
+                statementExecute("UPDATE users SET login='%s', password='%s', user_type=%d, name='%s', surname='%s' WHERE id=%d);"
+                        .formatted(user.getLogin(), user.getPassword(), user.getUserType().id, user.getName(), user.getSurname(), idUser));
+            else
+                statementExecute("UPDATE users SET login='%s', password='%s', name='%s', surname='%s', patronymic='%s' WHERE id=%d);"
+                        .formatted(user.getLogin(), user.getPassword(), user.getName(), user.getSurname(), user.getPatronymic(), idUser));
+
+            return idUser;
+        } else
+            return -1;
+    }
+
+    public int addUpdateCompetence(CompetencesRow competence) throws SQLException {
+        return addUpdateCompetence(null, competence);
+    }
+
+    public int addUpdateCompetence(Integer idCompetence, CompetencesRow competence) throws SQLException {
+        if (idCompetence == null) {
+            // add
+            statementExecute("INSERT INTO competences (name, description) VALUES ('%s', '%s');"
+                    .formatted(competence.getName(), competence.getDescription()));
+
+            return getLastInsertId();
+        } else if (idCompetence > 0) {
+            // update
+            statementExecute("UPDATE competence SET name='%s', description='%s' WHERE id=%d;"
+                    .formatted(competence.getName(), competence.getDescription(), idCompetence));
+
+            return idCompetence;
+        } else
+            return -1;
+    }
+
+    public int addUpdateIndicator(IndicatorsRow indicator) throws SQLException {
+        return addUpdateIndicator(null, indicator);
+    }
+
+    public int addUpdateIndicator(Integer idIndicator, IndicatorsRow indicator) throws SQLException {
+        // проверка наличия компетенции по id
+        if (statementExecuteQuery("SELECT * FROM competence WHERE id=%d LIMIT 1;"
+                .formatted(indicator.getIdCompetence())).next()) {
+            if (idIndicator == null) {
+                // add
+                statementExecute("INSERT INTO indicators (name, sub_id, id_competence) VALUES ('%s', %d, %d);"
+                        .formatted(indicator.getName(), indicator.getSubId(), indicator.getIdCompetence()));
+
+                return getLastInsertId();
+            } else if (idIndicator > 0) {
+                // update
+
+                statementExecute("UPDATE indicators SET name='%s', sub_id=%d, id_competence=%d WHERE id=%d;"
+                        .formatted(indicator.getName(), indicator.getSubId(), indicator.getIdCompetence(), idIndicator));
+
+                return idIndicator;
+            }
+
+        }
+
+        return -1; // TODO: 30.07.2023 сделать автодополненние sub_id
+    }
+
+    public int addUpdateEducationalPrograms(CompetencesRow competence) throws SQLException {
+        return addUpdateEducationalPrograms(null, competence);
+    } // FIXME: 30.07.2023 пока неготово
+
+    public int addUpdateEducationalPrograms(Integer idCompetence, CompetencesRow competence) throws SQLException {
+        if (idCompetence == null) {
+            // add
+            statementExecute("INSERT INTO competences (name, description) VALUES ('%s', '%s');"
+                    .formatted(competence.getName(), competence.getDescription()));
+
+            return getLastInsertId();
+        } else if (idCompetence > 0) {
+            // update
+            statementExecute("UPDATE competence SET name='%s', description='%s' WHERE id=%d;"
+                    .formatted(competence.getName(), competence.getDescription(), idCompetence));
+
+            return idCompetence;
+        } else
+            return -1;
+    } // FIXME: 30.07.2023 пока неготово
+
     public ArrayList<String> getTaskQuestionsOneInMany(int idTask) throws SQLException {
-        ResultSet id_questions = connection.createStatement().executeQuery(
+        ResultSet id_questions = statementExecuteQuery(
                 "SELECT id_question FROM tasks_one_in_many_task_questions WHERE id_task=%d;"
                         .formatted(idTask));
 
         ArrayList<String> taskQuestions = new ArrayList<>(4);
         while (id_questions.next()) {
-            ResultSet text = connection.createStatement().executeQuery(
+            ResultSet text = statementExecuteQuery(
                     "SELECT text FROM tasks_one_in_many_questions_bank WHERE id=%d LIMIT 1;"
                             .formatted(id_questions.getInt(1)));
             text.next();
@@ -529,25 +659,6 @@ public class SQLHandler {
         answer_correct.next();
 
         return answer_correct.getString(1);
-    }
-
-    private static int getLastInsertId() throws SQLException {
-        return getOneRowExecuteQuery("SELECT LAST_INSERT_ID();").getInt(1);
-    }
-
-    private static ResultSet getOneRowExecuteQuery(String sql) throws SQLException {
-        ResultSet rs = connection.createStatement().executeQuery(sql);
-        rs.next();
-
-        return rs;
-    }
-
-    private static void statementExecute(String sql) throws SQLException {
-        connection.createStatement().execute(sql);
-    }
-
-    private static ResultSet statementExecuteQuery(String sql) throws SQLException {
-        return connection.createStatement().executeQuery(sql);
     }
 
     public void addDirection(DirectionsRow direction, int idLevelType, int idEducationalPrograms) throws SQLException {
@@ -604,18 +715,8 @@ public class SQLHandler {
                 .formatted(idEducationalProgram)).getString("name");
     }
 
-    public void addCompetence(CompetencesRow competence) throws SQLException {
-        statementExecute("INSERT INTO competences (name, description) VALUES ('%s', '%s');"
-                .formatted(competence.getName(), competence.getDescription()));
-    }
-
     public void delCompetence(int idCompetence) throws SQLException {
         statementExecute("DELETE FROM competence WHERE id=%d;".formatted(idCompetence));
-    }
-
-    public void updateCompetence(int idCompetence, CompetencesRow competence) throws SQLException {
-        statementExecute("UPDATE competence SET name='%s', description='%s' WHERE id=%d;"
-                .formatted(competence.getName(), competence.getDescription(), idCompetence));
     }
 
     public CompetencesRow getCompetence(int idCompetence) throws SQLException {
@@ -626,23 +727,13 @@ public class SQLHandler {
                 competence.getString("description"));
     }
 
-    public void addIndicator(IndicatorsRow indicator) throws SQLException {
-        statementExecute("INSERT INTO indicators (name, sub_id, id_competence) VALUES ('%s', %d, %d);"
-                .formatted(indicator.getName(), indicator.getSubId(), indicator.getIdCompetence()));
-    }
+//    public ArrayList<Integer> getIdTasksByIndicator(int idIndicator) {
+//        statementExecuteQuery("")
+//    }
 
     public void delIndicator(int idIndicator) throws SQLException {
         statementExecute("DELETE FROM indicators WHERE id=%d;".formatted(idIndicator));
     }
-
-    public void updateIndicator(int idCompetence, CompetencesRow competence) throws SQLException {
-        statementExecute("UPDATE competence SET name='%s', description='%s' WHERE id=%d;"
-                .formatted(competence.getName(), competence.getDescription(), idCompetence));
-    }
-
-//    public ArrayList<Integer> getIdTasksByIndicator(int idIndicator) {
-//        statementExecuteQuery("")
-//    }
 
     public IndicatorsRow getIndicator(int idIndicator) throws SQLException {
         ResultSet competence = statementExecuteQuery("SELECT * FROM indicators WHERE id=%d LIMIT 1;"
@@ -688,24 +779,6 @@ public class SQLHandler {
         statementExecute("DELETE FROM educational_programs WHERE id=%d;".formatted(idEducationalProgram));
     }
 
-    public void updateEducationalProgram(int idEducationalProgram, EducationalProgramsRow educationalProgram) throws SQLException {
-        statementExecute("UPDATE educational_programs SET name='%s' WHERE id=%d;"
-                .formatted(educationalProgram.getName(), idEducationalProgram));
-    }
-
-    public EducationalProgramsRow getEducationalProgram(int idEducationalProgram) throws SQLException {
-        ResultSet educationalProgram = statementExecuteQuery("SELECT * FROM educational_programs WHERE id=%d LIMIT 1;"
-                .formatted(idEducationalProgram));
-        return new EducationalProgramsRow(educationalProgram.getString("name")); // TODO: 30.07.2023 тз в телеге
-    }
-
-    public void connectEducationalProgramsWithCompetences(int idEducationalProgram, ArrayList<Integer> idCompetences) throws SQLException {
-        for (int idCompetence: idCompetences) {
-            statementExecute("INSERT INTO educational_programs_competences (id_educational_program, id_competence) VALUES (%d, %d);"
-                    .formatted(idEducationalProgram, idCompetence));
-        }
-    }
-
 
 //    public void addTeacher(int login, int password) throws SQLException {
 //        connection.createStatement().execute(
@@ -721,16 +794,21 @@ public class SQLHandler {
 //        );
 //    }
 
-    public static UserInfo getUserInfo(int userId) throws SQLException {
-        ResultSet rs = connection.createStatement()
-                .executeQuery(("""
-                        SELECT name, surname, patronymic, user_type FROM users WHERE id=%d
-                                """.formatted(userId)
-                ));
+    public void updateEducationalProgram(int idEducationalProgram, EducationalProgramsRow educationalProgram) throws SQLException {
+        statementExecute("UPDATE educational_programs SET name='%s' WHERE id=%d;"
+                .formatted(educationalProgram.getName(), idEducationalProgram));
+    }
 
-        if (rs.next())
-            return new UserInfo(userId, rs.getString(1), rs.getString(2), rs.getString(3), rs.getInt(4));
+    public EducationalProgramsRow getEducationalProgram(int idEducationalProgram) throws SQLException {
+        ResultSet educationalProgram = statementExecuteQuery("SELECT * FROM educational_programs WHERE id=%d LIMIT 1;"
+                .formatted(idEducationalProgram));
+        return new EducationalProgramsRow(educationalProgram.getString("name"));
+    }
 
-        return null;
+    public void connectEducationalProgramsWithCompetences(int idEducationalProgram, ArrayList<Integer> idCompetences) throws SQLException {
+        for (int idCompetence : idCompetences) {
+            statementExecute("INSERT INTO educational_programs_competences (id_educational_program, id_competence) VALUES (%d, %d);"
+                    .formatted(idEducationalProgram, idCompetence));
+        }
     }
 }

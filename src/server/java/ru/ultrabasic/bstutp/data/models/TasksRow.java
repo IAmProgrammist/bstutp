@@ -1,5 +1,7 @@
 package ru.ultrabasic.bstutp.data.models;
 
+import ru.ultrabasic.bstutp.data.models.tasks.TaskTypes;
+
 public class TasksRow {
     private int idTest;
     private int order;

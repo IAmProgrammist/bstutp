@@ -4,7 +4,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import ru.ultrabasic.bstutp.data.SQLHandler;
-import ru.ultrabasic.bstutp.data.models.TaskTypes;
 import ru.ultrabasic.bstutp.data.models.tasks.Task;
 import ru.ultrabasic.bstutp.data.models.Test;
 
