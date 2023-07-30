@@ -11,14 +11,15 @@ import {setErrorMail, setErrorPassword} from "../slices/loginReducer";
 import Header from "../elements/Header";
 import List from "./List";
 import Test from "./Test"
-import Score from "../elements/Score"
 
 let App = props => {
     return <div>
         <FetchScreen isFetching={props.loginData.isFetching || props.mainlistData.isFetching}/>
         <Router>
             <Routes>
-                <Route exact path="/" element={<Score score={1} width={200} height={100} fontSize={70}/>}/>
+                <Route exact path="/" element={
+                    <div>Hello World!</div>
+                    }/>
                 <Route exact path="/login" element={<div className="container">
                     <LoginRegisterScreen
                         loginData={props.loginData}
@@ -31,7 +32,7 @@ let App = props => {
                         mainlistData={props.mainlistData}
                         mainlistFuncs={props.mainlistFuncs}
                         setTestData={props.testFuncs.setTestData}
-                        />
+                    />
                 }/>
                 <Route exact path="/test" element={
                     <Test
@@ -39,7 +40,7 @@ let App = props => {
                         testFuncs={props.testFuncs}
                         mainlistData={props.mainlistData}
                         mainlistFuncs={props.mainlistFuncs}
-                        />
+                    />
                 }/>
             </Routes>
         </Router>

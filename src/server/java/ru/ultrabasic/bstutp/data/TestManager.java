@@ -2,6 +2,9 @@ package ru.ultrabasic.bstutp.data;
 
 import org.json.JSONObject;
 import ru.ultrabasic.bstutp.data.models.*;
+import ru.ultrabasic.bstutp.data.models.tests.Report;
+import ru.ultrabasic.bstutp.data.models.tests.TeacherEditableTest;
+import ru.ultrabasic.bstutp.data.models.tests.Test;
 
 import java.sql.SQLException;
 
@@ -25,9 +28,9 @@ public class TestManager {
                 testInfo.put("test", fullTest.getJSONObject());
                 break;
             case DRAFT:
-                // Teacher func
+                TeacherEditableTest teacherTest = SQLHandler.getTestTeacherDraft(testId, userId);
                 break;
-            case EDITABLE:
+            case ACTIVE:
                 // Edit for teacher
                 break;
             case NOT_AVAILABLE:

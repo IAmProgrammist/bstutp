@@ -191,6 +191,36 @@ let List = props => {
                 <Score score={test.result} width={60} height={30} fontSize={20}/>
             </li>
         }
+    } else if (userType === "teacher" && currentSlot === "active") {
+        testsArray = active;
+
+        renderStudentTestsActive = (test) => {
+            return <li className={"list__testitem"} onClick={(ev) => {
+                navigate("/test?id_test=" + test.id);
+            }}>
+                <div className={"list__testitem_info"}>
+                    <div className={"list__testitem_info_title"}>{test.name}</div>
+                    <div
+                        className={"list__testitem_info_sub"}>{test.discipline + " • " + Math.floor(test.duration / 60 / 10) + Math.floor(test.duration / 60) % 10 +
+                        " мин. " + Math.floor(test.duration % 60 / 10) + test.duration % 60 % 10 + " сек."}</div>
+                </div>
+            </li>
+        }
+    } else if (userType === "teacher" && currentSlot === "draft") {
+        testsArray = draft;
+
+        renderStudentTestsActive = (test) => {
+            return <li className={"list__testitem"} onClick={(ev) => {
+                navigate("/test?id_test=" + test.id);
+            }}>
+                <div className={"list__testitem_info"}>
+                    <div className={"list__testitem_info_title"}>{test.name}</div>
+                    <div
+                        className={"list__testitem_info_sub"}>{test.discipline + " • " + Math.floor(test.duration / 60 / 10) + Math.floor(test.duration / 60) % 10 +
+                        " мин. " + Math.floor(test.duration % 60 / 10) + test.duration % 60 % 10 + " сек."}</div>
+                </div>
+            </li>
+        }
     }
 
     let mapper = (testss) => {

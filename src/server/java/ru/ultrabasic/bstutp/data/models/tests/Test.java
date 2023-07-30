@@ -1,4 +1,4 @@
-package ru.ultrabasic.bstutp.data.models;
+package ru.ultrabasic.bstutp.data.models.tests;
 
 import lombok.AllArgsConstructor;
 import lombok.Value;

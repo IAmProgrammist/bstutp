@@ -11,6 +11,10 @@ import ru.ultrabasic.bstutp.data.models.tasks.oneinmany.TaskOneInManyStudentAnsw
 import ru.ultrabasic.bstutp.data.models.tasks.text.TaskText;
 import ru.ultrabasic.bstutp.data.models.tasks.text.TaskTextStudentAnswer;
 import ru.ultrabasic.bstutp.data.models.tasks.text.TaskTextStudentAnswerWithCorrect;
+import ru.ultrabasic.bstutp.data.models.records.Discipline;
+import ru.ultrabasic.bstutp.data.models.tests.Report;
+import ru.ultrabasic.bstutp.data.models.tests.TeacherEditableTest;
+import ru.ultrabasic.bstutp.data.models.tests.Test;
 import ru.ultrabasic.bstutp.messages.errors.DatabaseError;
 
 import java.sql.Connection;
@@ -265,7 +269,15 @@ public class SQLHandler {
         if (searchRes.isPresent())
             return TestState.COMPLETED;
 
-        return null;
+        searchRes = getTeacherTestsDraft(userId).stream().filter(el -> el.id == testId).findFirst();
+        if (searchRes.isPresent())
+            return TestState.DRAFT;
+
+        searchRes = getTeacherTestsActive(userId).stream().filter(el -> el.id == testId).findFirst();
+        if (searchRes.isPresent())
+            return TestState.ACTIVE;
+
+        return TestState.NOT_AVAILABLE;
     }
 
     public static TestShort getTestShort(int testId) throws SQLException {
@@ -584,6 +596,21 @@ public class SQLHandler {
         return null;
     }
 
+    public static TeacherEditableTest getTestTeacherDraft(int testId, int userId) throws SQLException {
+        //List<Discipline> disciplines, Discipline discipline,
+        //List<Task> tasks, List<Group> groups, List<Group> allGroups
+        TeacherEditableTest test = null;
+        ResultSet testRequest = connection.createStatement()
+                .executeQuery(("""
+                        SELECT tests.id, tests.time, tests.is_draft, tests.id_owner, tests.name, FROM tests
+                        INNER JOIN tests_disciplines ON tests_disciplines.id_test = tests.id
+                        INNER JOIN discipline ON discipline.id = tests_disciplines.id_discipline
+                        INNER JOIN reports ON reports.id_test = tests.id
+                        WHERE tests.id_owner='%d' AND tests.id='%d'
+                                """.formatted(userId, testId)));
+        List<Discipline> disciplines = new ArrayList<>();
+    }
+
 //    public Test getTest(int idTest) throws SQLException {
 //        int time = connection.createStatement().executeQuery(
 //                "SELECT time FROM tests WHERE id=%d LIMIT 1;"
@@ -660,6 +687,7 @@ public class SQLHandler {
             throw new SQLException();
         }
     }
+
 
 
 

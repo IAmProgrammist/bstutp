@@ -4,7 +4,7 @@ public enum TestState {
     AVAILABLE("available"),
     NOT_AVAILABLE("not_available"),
     DRAFT("draft"),
-    EDITABLE("editable"),
+    ACTIVE("active"),
     RUNNING("running"),
     COMPLETED("completed");
 
