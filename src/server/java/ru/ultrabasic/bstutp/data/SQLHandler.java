@@ -667,7 +667,7 @@ public class SQLHandler {
         return null;
     }
 
-    public static int addUpdateUserWithInitPlaceInTableByUserType(User user) throws SQLException {
+    public static int addUpdateUser(User user) throws SQLException {
         if (user.id() == null) {
             // add
             if (user.patronymic() == null)
