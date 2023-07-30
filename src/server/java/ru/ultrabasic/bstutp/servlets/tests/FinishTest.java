@@ -1,6 +1,5 @@
 package ru.ultrabasic.bstutp.servlets.tests;
 
-import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServlet;
@@ -10,19 +9,19 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import ru.ultrabasic.bstutp.data.SQLHandler;
 import ru.ultrabasic.bstutp.data.TestManager;
-import ru.ultrabasic.bstutp.data.models.TestState;
 import ru.ultrabasic.bstutp.data.models.UserInfo;
-import ru.ultrabasic.bstutp.data.models.UserTypes;
 import ru.ultrabasic.bstutp.messages.errors.*;
-import ru.ultrabasic.bstutp.messages.success.*;
+import ru.ultrabasic.bstutp.messages.success.TestFinishedManually;
+import ru.ultrabasic.bstutp.messages.success.TestStarted;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.stream.Collectors;
 
-@WebServlet("/api/tests/test")
-public class GetTest extends HttpServlet {
+@WebServlet("/api/tests/finish")
+public class FinishTest extends HttpServlet {
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         try {
             Integer userId = null;
             for (Cookie cookie : req.getCookies())
@@ -39,20 +38,15 @@ public class GetTest extends HttpServlet {
             if (userInfo == null || userInfo.userType == null)
                 throw new SQLException();
 
-            Integer testId = Integer.valueOf(req.getParameter("id_test"));
-            JSONObject data = TestManager.whassup(userId, testId);
+            JSONObject jsonStart = new JSONObject(req.getReader().lines().collect(Collectors.joining(System.lineSeparator())));
+            int testId = jsonStart.getInt("idTest");
 
-            if (data.getString("state").equals(TestState.NOT_AVAILABLE.type)) {
-                new TestNoAccess().writeToResponse(resp);
-            }
-
-            new TestDataMessage().writeToResponse(resp, data, userInfo);
+            TestManager.finishTest(testId, userId);
+            new TestFinishedManually().writeToResponse(resp);
         } catch (SQLException e) {
             new DatabaseError().writeToResponse(resp);
         } catch (JSONException e) {
             new JSONError().writeToResponse(resp);
-        } catch (NumberFormatException e) {
-            new InvalidParameter().writeToResponse(resp);
         }
     }
 }

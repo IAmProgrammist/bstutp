@@ -56,7 +56,7 @@ public class GetTests extends HttpServlet {
 
             if (userInfo.userType == UserTypes.STUDENT) {
 
-                if ("results".equals(taskType)) {
+                if ("completed".equals(taskType)) {
                     new StudentsTestsListCompleted()
                             .writeToResponse(resp, getTasksByPage(SQLHandler.getStudentsTasksCompleted(userId), page), userInfo);
                 } else {
