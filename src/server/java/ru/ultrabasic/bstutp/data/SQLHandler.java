@@ -285,6 +285,18 @@ public class SQLHandler {
         return null;
     }
 
+    public static void finishTest(int userId, int testId) throws SQLException {
+        TestShort test = getTestShort(testId);
+
+        if (test == null)
+            return;
+
+        connection.createStatement()
+                .executeUpdate(("""
+                        UPDATE reports SET completion_time = %d WHERE id_student=%d AND id_test=%d
+                                """.formatted(new Date().getTime(), userId, testId)));
+    }
+
     public static boolean startTest(int userId, int testId) throws SQLException {
         TestShort test = getTestShort(testId);
 
@@ -456,13 +468,14 @@ public class SQLHandler {
         return null;
     }
 
-    public static boolean isTestRunningFromIdDetailedReport(int idDetailedReport) throws SQLException {
+    public static boolean isTestRunningFromIdDetailedReport(int idDetailedReport, int userId) throws SQLException {
         ResultSet testsRequest = connection.createStatement()
                 .executeQuery(("""
                         SELECT reports.completion_time FROM report_detailed
                         INNER JOIN reports ON reports.id = report_detailed.id_report
-                        WHERE report_detailed.id = %d AND reports.completion_time > %d
-                                """.formatted(idDetailedReport, new Date().getTime())));
+                        INNER JOIN users ON users.id = reports.id_student
+                        WHERE report_detailed.id = %d AND reports.completion_time > %d AND users.id=%d
+                                """.formatted(idDetailedReport, new Date().getTime(), userId)));
 
         return testsRequest.next();
     }
@@ -647,6 +660,8 @@ public class SQLHandler {
             throw new SQLException();
         }
     }
+
+
 
     public int addUpdateCompetence(CompetencesRow competence) throws SQLException {
         if (competence.getId() == null) {

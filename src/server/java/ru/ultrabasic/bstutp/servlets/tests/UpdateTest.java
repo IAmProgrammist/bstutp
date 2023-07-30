@@ -54,7 +54,7 @@ public class UpdateTest extends HttpServlet {
                 TaskTypes taskType = TaskTypes.fromType(update.getString("taskType"));
                 int idDetailedReport = update.getInt("idReportDetailed");
 
-                if (SQLHandler.isTestRunningFromIdDetailedReport(idDetailedReport)) {
+                if (SQLHandler.isTestRunningFromIdDetailedReport(idDetailedReport, userId)) {
                     switch (taskType) {
                         case ONE_IN_MANY:
                             Integer idAnswer = update.get("idAnswer").equals(JSONObject.NULL) ? null : update.getInt("idAnswer");

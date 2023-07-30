@@ -88,6 +88,7 @@ let Test = props => {
     useEffect(() => {
         clearTimeout(inputDataTimerID);
         setInputTimerID(setTimeout(() => {
+            clearTimeout(inputDataTimerID);
             setTestFetching(true);
             setInputTimerID(null);
 
@@ -334,8 +335,125 @@ let Test = props => {
                     <div className={"test__running_title"}>{name}</div>
                     {tasksIterator(tasks)}
                     <div className={"test__task_buttons"}>
-                        <button className={"button test__task_button test__task_button_send"}>Отправить</button>
-                        <button className={"button test__task_button test__task_button_save"}>Сохранить</button>
+                        <button className={"button test__task_button test__task_button_send"} onClick={() => {
+                            fetch(baseURL + "/api/tests/finish", {
+                                method: 'POST',
+                                headers: {
+                                    'Accept': 'application/json',
+                                    'Content-Type': 'application/json'
+                                },
+                                credentials: "include",
+                                body: JSON.stringify({idTest: +new URL(window.location.href).searchParams.get("id_test")})
+                            })
+                                .then(res => {
+                                    setListFetching(false);
+
+                                    if (res.ok) {
+                                        setListFetching(true);
+
+                                        fetch(baseURL + "/api/tests/test?id_test=" + new URL(window.location.href).searchParams.get("id_test"), {
+                                            method: 'GET',
+                                            headers: {
+                                                'Accept': 'application/json',
+                                                'Content-Type': 'application/json'
+                                            },
+                                            credentials: "include"
+                                        })
+                                            .then(res => {
+                                                setListFetching(false);
+
+                                                return res.json();
+                                            })
+                                            .then(res => {
+                                                setListFetching(false);
+                                                setUserData(res);
+                                                setTestData(res);
+                                            })
+                                            .catch(res => {
+                                                setListFetching(false);
+                                                console.error("Vlad please fix this, something really bad happened");
+                                                console.error(res.stack);
+                                            })
+                                    }
+
+                                    return res.json();
+                                })
+                                .then(res => {
+                                })
+                                .catch(res => {
+                                    setListFetching(false);
+                                    console.error("Vlad please fix this, something really bad happened");
+                                    console.error(res.stack);
+                                })
+                        }}>Отправить</button>
+                        <button className={"button test__task_button test__task_button_save"} onClick={() => {
+                            setTestFetching(true);
+                            setInputTimerID(null);
+
+                            let updates = {
+                                "tasks": tasks.map((task) => {
+                                    return task.taskType === "text" ? {
+                                            taskType: task.taskType,
+                                            idReportDetailed: task.idReportDetailed,
+                                            answer: task.answer
+                                        } :
+                                        task.taskType === "one_in_many" ? {
+                                            taskType: task.taskType,
+                                            idReportDetailed: task.idReportDetailed,
+                                            idAnswer: task.idAnswer
+                                        } : null;
+                                }).filter(el => el !== null)
+                            };
+
+                            fetch(baseURL + "/api/tests/update",
+                                {
+                                    method: 'POST',
+                                    headers: {
+                                        'Accept': 'application/json',
+                                        'Content-Type': 'application/json'
+                                    },
+                                    credentials: "include",
+                                    body: JSON.stringify(updates)
+                                })
+                                .then(res => {
+                                    setTestFetching(false);
+                                    res.json();
+                                })
+                                .then(res => {
+                                    setTestFetching(true);
+
+                                    fetch(baseURL + "/api/tests/test?id_test=" + new URL(window.location.href).searchParams.get("id_test"), {
+                                        method: 'GET',
+                                        headers: {
+                                            'Accept': 'application/json',
+                                            'Content-Type': 'application/json'
+                                        },
+                                        credentials: "include"
+                                    })
+                                        .then(res => {
+                                            setTestFetching(false);
+
+                                            return res.json();
+                                        })
+                                        .then(res => {
+                                            setTestFetching(false);
+                                            setUserData(res);
+                                            setTestData(res);
+                                        })
+                                        .catch(res => {
+                                            setTestFetching(false);
+                                            setTestFetchError(true);
+                                            console.error("Vlad please fix this, something really bad happened");
+                                            console.error(res.stack);
+                                        })
+                                })
+                                .catch(res => {
+                                    setTestFetching(false);
+                                    setTestFetchError(true);
+                                    console.error("Vlad please fix this, something really bad happened");
+                                    console.error(res.stack);
+                                });
+                        }}>Сохранить</button>
                     </div>
                 </div>
             </section>

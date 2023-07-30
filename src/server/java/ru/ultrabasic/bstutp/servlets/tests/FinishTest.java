@@ -10,10 +10,8 @@ import org.json.JSONObject;
 import ru.ultrabasic.bstutp.data.SQLHandler;
 import ru.ultrabasic.bstutp.data.TestManager;
 import ru.ultrabasic.bstutp.data.models.UserInfo;
-import ru.ultrabasic.bstutp.messages.errors.DatabaseError;
-import ru.ultrabasic.bstutp.messages.errors.JSONError;
-import ru.ultrabasic.bstutp.messages.errors.SessionKeyInvalid;
-import ru.ultrabasic.bstutp.messages.errors.TestNotStarted;
+import ru.ultrabasic.bstutp.messages.errors.*;
+import ru.ultrabasic.bstutp.messages.success.TestFinishedManually;
 import ru.ultrabasic.bstutp.messages.success.TestStarted;
 
 import java.io.IOException;
@@ -42,6 +40,9 @@ public class FinishTest extends HttpServlet {
 
             JSONObject jsonStart = new JSONObject(req.getReader().lines().collect(Collectors.joining(System.lineSeparator())));
             int testId = jsonStart.getInt("idTest");
+
+            TestManager.finishTest(testId, userId);
+            new TestFinishedManually().writeToResponse(resp);
         } catch (SQLException e) {
             new DatabaseError().writeToResponse(resp);
         } catch (JSONException e) {

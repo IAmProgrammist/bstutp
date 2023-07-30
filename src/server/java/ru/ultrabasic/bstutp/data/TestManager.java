@@ -46,4 +46,12 @@ public class TestManager {
 
         return SQLHandler.startTest(userId, testId);
     }
+
+    public static void finishTest(int userId, int testId) throws SQLException {
+        TestState state = SQLHandler.getState(userId, testId);
+        if (state != TestState.RUNNING)
+            return;
+
+        SQLHandler.finishTest(userId, testId);
+    }
 }
