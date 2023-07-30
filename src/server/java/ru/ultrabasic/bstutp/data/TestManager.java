@@ -1,9 +1,7 @@
 package ru.ultrabasic.bstutp.data;
 
 import org.json.JSONObject;
-import ru.ultrabasic.bstutp.data.models.TestShort;
-import ru.ultrabasic.bstutp.data.models.TestState;
-import ru.ultrabasic.bstutp.data.models.UserTypes;
+import ru.ultrabasic.bstutp.data.models.*;
 
 import java.sql.SQLException;
 
@@ -19,7 +17,8 @@ public class TestManager {
                 testInfo.put("test", testShortAvailable.getJSONObject());
                 break;
             case RUNNING:
-                // Get full test
+                Report questionsOnlyTest = SQLHandler.getReportNoAnswers(testId, userId);
+                testInfo.put("test", questionsOnlyTest.getJSONObject());
                 break;
             case COMPLETED:
                 // Get report
