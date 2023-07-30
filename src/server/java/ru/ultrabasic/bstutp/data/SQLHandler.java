@@ -46,6 +46,20 @@ public class SQLHandler {
         }
     }
 
+    public void delUser(int idUser) throws SQLException {
+        UserTypes userType = userType(idUser);
+        if (userType == UserTypes.STUDENT) {
+            statementExecute("DELETE FROM students WHERE id=%d".formatted(idUser));
+        } else if (userType == UserTypes.TEACHER) {
+            statementExecute("DELETE FROM teacher WHERE id=%d".formatted(idUser));
+        } else if (userType == UserTypes.ADMIN) {
+            statementExecute("DELETE FROM admins WHERE id=%d".formatted(idUser));
+        }
+        statementExecute("DELETE FROM users WHERE id=%d".formatted(idUser));
+    }
+
+
+
     public static Integer getUserId(String login, String password) throws SQLException {
         ResultSet rs = connection.createStatement()
                 .executeQuery("SELECT users.id FROM users WHERE login='%s' AND password='%s';".formatted(login, password));
@@ -596,21 +610,6 @@ public class SQLHandler {
         return null;
     }
 
-    public static TeacherEditableTest getTestTeacherDraft(int testId, int userId) throws SQLException {
-        //List<Discipline> disciplines, Discipline discipline,
-        //List<Task> tasks, List<Group> groups, List<Group> allGroups
-        TeacherEditableTest test = null;
-        ResultSet testRequest = connection.createStatement()
-                .executeQuery(("""
-                        SELECT tests.id, tests.time, tests.is_draft, tests.id_owner, tests.name, FROM tests
-                        INNER JOIN tests_disciplines ON tests_disciplines.id_test = tests.id
-                        INNER JOIN discipline ON discipline.id = tests_disciplines.id_discipline
-                        INNER JOIN reports ON reports.id_test = tests.id
-                        WHERE tests.id_owner='%d' AND tests.id='%d'
-                                """.formatted(userId, testId)));
-        List<Discipline> disciplines = new ArrayList<>();
-    }
-
 //    public Test getTest(int idTest) throws SQLException {
 //        int time = connection.createStatement().executeQuery(
 //                "SELECT time FROM tests WHERE id=%d LIMIT 1;"
@@ -639,6 +638,21 @@ public class SQLHandler {
 //
 //        return test;
 //    }
+
+    public static TeacherEditableTest getTestTeacherDraft(int testId, int userId) throws SQLException {
+        //List<Discipline> disciplines, Discipline discipline,
+        //List<Task> tasks, List<Group> groups, List<Group> allGroups
+        TeacherEditableTest test = null;
+        ResultSet testRequest = connection.createStatement()
+                .executeQuery(("""
+                        SELECT tests.id, tests.time, tests.is_draft, tests.id_owner, tests.name, FROM tests
+                        INNER JOIN tests_disciplines ON tests_disciplines.id_test = tests.id
+                        INNER JOIN discipline ON discipline.id = tests_disciplines.id_discipline
+                        INNER JOIN reports ON reports.id_test = tests.id
+                        WHERE tests.id_owner='%d' AND tests.id='%d'
+                                """.formatted(userId, testId)));
+        List<Discipline> disciplines = new ArrayList<>();
+    }
 
     public static UserInfo getUserInfo(int userId) throws SQLException {
         ResultSet rs = connection.createStatement()
@@ -860,14 +874,14 @@ public class SQLHandler {
     }
 
     public int addStudent(Student student) throws SQLException {
-        if (!statementExecuteQuery("SELECT * FROM teaching_groups WHERE id=%d LIMIT 1;"
-                .formatted(student.idGroup())).next()) {
+        if (!statementExecuteQuery("SELECT * FROM users WHERE id=%d AND user_type=%d LIMIT 1;"
+                .formatted(student.idUser(), 0)).next()) {
             new DatabaseError();
             throw new SQLException();
         }
 
-        if (!statementExecuteQuery("SELECT * FROM users WHERE id=%d AND user_type=%d LIMIT 1;"
-                .formatted(student.idUser(), 0)).next()) {
+        if (!statementExecuteQuery("SELECT * FROM teaching_groups WHERE id=%d LIMIT 1;"
+                .formatted(student.idGroup())).next()) {
             new DatabaseError();
             throw new SQLException();
         }
@@ -876,6 +890,31 @@ public class SQLHandler {
             // add
             statementExecute("INSERT INTO students (id_user, id_group, report_card_id) VALUES (%d, %d, %d);"
                     .formatted(student.idUser(), student.idGroup(), student.reportCardId()));
+
+            return getLastInsertId();
+        } else {
+            new DatabaseError();
+            throw new SQLException();
+        }
+    }
+
+    public int addTeacher(Teacher teacher) throws SQLException {
+        if (!statementExecuteQuery("SELECT * FROM users WHERE id=%d AND user_type=%d LIMIT 1;"
+                .formatted(teacher.idUser(), 1)).next()) {
+            new DatabaseError();
+            throw new SQLException();
+        }
+
+        if (!statementExecuteQuery("SELECT * FROM teacher_status WHERE id=%d LIMIT 1;"
+                .formatted(teacher.idUser())).next()) {
+            new DatabaseError();
+            throw new SQLException();
+        }
+
+        if (teacher.idUser() > 0) {
+            // add
+            statementExecute("INSERT INTO teacher (id_user, id_status) VALUES (%d, %d);"
+                    .formatted(teacher.idUser(), teacher.status()));
 
             return getLastInsertId();
         } else {
@@ -933,8 +972,16 @@ public class SQLHandler {
         );
     }
 
-    public void delDirection(int id_direction) throws SQLException {
-        statementExecute("DELETE FROM directions WHERE id=%d;".formatted(id_direction));
+    public void delDirection(int idDirection) throws SQLException {
+        statementExecute("DELETE FROM directions WHERE id=%d;".formatted(idDirection));
+    }
+
+    public void delDiscipline(int idDiscipline) throws SQLException {
+        statementExecute("DELETE FROM discipline WHERE id=%d;".formatted(idDiscipline));
+    }
+
+    public void delGroup(int idGroup) throws SQLException {
+        statementExecute("DELETE FROM teaching_groups WHERE id=%d;".formatted(idGroup));
     }
 
     public void updateDirectionIdEducationalProgram(int idDirections, Direction direction, int idEducationalProgram) throws SQLException {
@@ -987,6 +1034,10 @@ public class SQLHandler {
                 .formatted(competence.name(), competence.description(), idCompetence));
     }
 
+//    public ArrayList<Integer> idTasksByIndicator(int idIndicator) {
+//        statementExecuteQuery("")
+//    }
+
     public Competence getCompetence(int idCompetence) throws SQLException {
         ResultSet competence = statementExecuteQuery("SELECT * FROM idCompetence WHERE id=%d LIMIT 1;"
                 .formatted(idCompetence));
@@ -995,10 +1046,6 @@ public class SQLHandler {
                 competence.getString("name"),
                 competence.getString("description"));
     }
-
-//    public ArrayList<Integer> idTasksByIndicator(int idIndicator) {
-//        statementExecuteQuery("")
-//    }
 
     public void delIndicator(int idIndicator) throws SQLException {
         statementExecute("DELETE FROM indicators WHERE id=%d;".formatted(idIndicator));
