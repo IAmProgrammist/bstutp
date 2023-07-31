@@ -88,7 +88,8 @@ let mapDispatchToProps = (dispatch) => {
             setTestName: (val) => dispatch(TestFuncs.setTestName(val)),
             setGroups: (val) => dispatch(TestFuncs.setGroups(val)),
             setDiscipline: (val) => dispatch(TestFuncs.setDiscipline(val)),
-            setDuration: (val) => dispatch(TestFuncs.setDuration(val))
+            setDuration: (val) => dispatch(TestFuncs.setDuration(val)),
+            changeRadioButtonVal: (taskId, questionId, val) => dispatch(TestFuncs.changeRadioButtonVal({data: val, taskId, questionId}))
         }
     }
 }

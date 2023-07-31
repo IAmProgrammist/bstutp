@@ -60,7 +60,6 @@ public class SQLHandler {
     }
 
 
-
     public static Integer getUserId(String login, String password) throws SQLException {
         ResultSet rs = connection.createStatement()
                 .executeQuery("SELECT users.id FROM users WHERE login='%s' AND password='%s';".formatted(login, password));
@@ -68,6 +67,17 @@ public class SQLHandler {
         if (rs.next()) {
             return rs.getInt("id");
         }
+
+        return null;
+    }
+
+    public static UserTypes getUserType(int userId) throws SQLException {
+        ResultSet rs = connection.createStatement()
+                .executeQuery(("SELECT user_types.id FROM users INNER JOIN user_types ON user_types.id = users.user_type " +
+                        "WHERE users.id='%d';").formatted(userId));
+
+        if (rs.next())
+            return UserTypes.fromID(rs.getInt("id"));
 
         return null;
     }
@@ -322,6 +332,124 @@ public class SQLHandler {
                 .executeUpdate(("""
                         UPDATE reports SET completion_time = %d WHERE id_student=%d AND id_test=%d
                                 """.formatted(new Date().getTime(), userId, testId)));
+    }
+
+    public static void updateTestHeader(int testId, String name, Long duration, int idDiscipline, List<Integer> groups) throws SQLException {
+        connection.createStatement()
+                .executeUpdate(("""
+                        UPDATE tests SET name = '%s', time = %d WHERE tests.id=%d
+                                """.formatted(name, duration, testId)));
+
+        connection.createStatement()
+                .executeUpdate(("""
+                        DELETE FROM tests_disciplines WHERE tests_disciplines.id_test=%d
+                                """.formatted(testId)));
+
+        connection.createStatement()
+                .executeUpdate(("""
+                        INSERT INTO tests_disciplines(id_test, id_discipline) VALUES (%d, %d)
+                                """.formatted(testId, idDiscipline)));
+
+        connection.createStatement()
+                .executeUpdate(("""
+                        DELETE FROM tests_groups WHERE tests_groups.id_test=%d
+                                """.formatted(testId)));
+
+        for (Integer g : groups)
+            connection.createStatement()
+                    .executeUpdate(("""
+                            INSERT INTO tests_groups(id_test, id_group) VALUES (%d, %d)
+                                    """.formatted(testId, g)));
+    }
+
+    public static void addTextTask(int testId, int owner) throws SQLException {
+        connection.createStatement()
+                .executeUpdate(("""
+                        INSERT INTO tasks(tasks.id_test, tasks.order, tasks.task_type, tasks.description, tasks.id_owner) VALUES (%d, 0, 1, "", %d)
+                                """.formatted(testId, owner)));
+        int taskId = getLastInsertId();
+
+
+        connection.createStatement()
+                .executeUpdate(("""
+                        INSERT INTO tasks_text(id_task, answer_correct) VALUES (%d, "")
+                                """.formatted(taskId)));
+    }
+
+    public static void updateTextTask(int taskId, String description, String answerCorrect, List<Integer> indicators) throws SQLException {
+        connection.createStatement()
+                .executeUpdate(("""
+                        UPDATE tasks SET description = '%s' WHERE tasks.id=%d;
+                                """.formatted(description, taskId)));
+
+        connection.createStatement()
+                .executeUpdate(("""
+                        UPDATE tasks_text SET answer_correct = '%s' WHERE tasks_text.id_task=%d;
+                                """.formatted(answerCorrect, taskId)));
+
+        connection.createStatement()
+                .executeUpdate(("""
+                        DELETE FROM tasks_indicators WHERE tasks_indicators.id_task=%d;
+                                """.formatted(taskId)));
+
+        for (Integer indicator : indicators) {
+            connection.createStatement()
+                    .executeUpdate(("""
+                            INSERT INTO tasks_indicators(id_task, id_indicator) VALUES (%d, %d)
+                                    """.formatted(taskId, indicator)));
+        }
+    }
+
+    public static void updateOneInManyTaskQuestion(int qId, String text) throws SQLException {
+        connection.createStatement()
+                .executeUpdate(("""
+                        UPDATE tasks_one_in_many_questions_bank SET text = '%s' WHERE tasks_one_in_many_questions_bank.id=%d;
+                                """.formatted(text, qId)));
+
+    }
+
+    public static void updateOneInManyTask(int taskId, String description, Integer idAnswerCorrect, List<Integer> indicators) throws SQLException {
+        connection.createStatement()
+                .executeUpdate(("""
+                        UPDATE tasks SET description = '%s' WHERE tasks.id=%d;
+                                """.formatted(description, taskId)));
+
+        if (idAnswerCorrect != null)
+            connection.createStatement()
+                    .executeUpdate(("""
+                            UPDATE tasks_one_in_many SET id_answer_correct = '%d' WHERE tasks_one_in_many.id_task=%d;
+                                    """.formatted(idAnswerCorrect, taskId)));
+        else
+            connection.createStatement()
+                    .executeUpdate(("""
+                            UPDATE tasks_one_in_many SET id_answer_correct = NULL WHERE tasks_one_in_many.id_task=%d;
+                                    """.formatted(taskId)));
+
+        connection.createStatement()
+                .executeUpdate(("""
+                        DELETE FROM tasks_indicators WHERE tasks_indicators.id_task=%d;
+                                """.formatted(taskId)));
+
+        for (Integer indicator : indicators) {
+            connection.createStatement()
+                    .executeUpdate(("""
+                            INSERT INTO tasks_indicators(id_task, id_indicator) VALUES (%d, %d)
+                                    """.formatted(taskId, indicator)));
+        }
+    }
+
+    public static void addOneInManyTask(int testId, int owner) throws SQLException {
+        connection.createStatement()
+                .executeUpdate(("""
+                        INSERT INTO tasks(tasks.id_test, tasks.order, tasks.task_type, tasks.description, tasks.id_owner) VALUES (%d, 0, 0, "", %d)
+                                """.formatted(testId, owner)));
+        int taskId = getLastInsertId();
+
+
+        connection.createStatement()
+                .executeUpdate(("""
+                        INSERT INTO tasks_one_in_many(id_task, id_answer_correct) VALUES (%d, NULL)
+                                """.formatted(taskId)));
     }
 
     public static boolean startTest(int userId, int testId) throws SQLException {
@@ -623,7 +751,7 @@ public class SQLHandler {
                         WHERE tests.id_owner='%d' AND tests.id='%d'
                                 """.formatted(userId, testId)));
         if (testRequest.next()) {
-            List<Discipline> disciplines = getDisciplines();
+            List<Discipline> disciplines = getDisciplinesNoComps();
             List<Group> allGroups = getGroups();
 
             Discipline discipline = null;
@@ -646,8 +774,9 @@ public class SQLHandler {
                             WHERE tests_disciplines.id_test=%d
                                     """.formatted(testId)));
 
-            if (disciplineRequest.next())
-                discipline = new Discipline(disciplineRequest.getInt("id"), disciplineRequest.getString("name"));
+            if (disciplineRequest.next()) {
+                discipline = new Discipline(disciplineRequest.getInt("id"), disciplineRequest.getString("name"), null);
+            }
 
             ResultSet tasksRequest = connection.createStatement()
                     .executeQuery(("""
@@ -664,10 +793,10 @@ public class SQLHandler {
                 List<Indicator> indicators = new ArrayList<>();
                 ResultSet indicatorsRequest = connection.createStatement()
                         .executeQuery(("""
-                            SELECT indicators.id, indicators.name, indicators.sub_id, indicators.id_competence FROM indicators
-                            INNER JOIN tasks_indicators ON tasks_indicators.id_indicator = indicators.id
-                            WHERE tasks_indicators.id_task=%d
-                                    """.formatted(testId)));
+                                SELECT indicators.id, indicators.name, indicators.sub_id, indicators.id_competence FROM indicators
+                                INNER JOIN tasks_indicators ON tasks_indicators.id_indicator = indicators.id
+                                WHERE tasks_indicators.id_task=%d
+                                        """.formatted(testId)));
 
                 while (indicatorsRequest.next()) {
                     indicators.add(new Indicator(indicatorsRequest.getInt(1), indicatorsRequest.getInt(3),
@@ -721,7 +850,7 @@ public class SQLHandler {
         return null;
     }
 
-    public static List<Discipline> getDisciplines() throws SQLException {
+    public static List<Discipline> getDisciplinesNoComps() throws SQLException {
         ResultSet disciplineRequest = connection.createStatement()
                 .executeQuery(("""
                         SELECT * FROM discipline;
@@ -729,7 +858,7 @@ public class SQLHandler {
 
         List<Discipline> list = new ArrayList<>();
         while (disciplineRequest.next()) {
-            list.add(new Discipline(disciplineRequest.getInt("id"), disciplineRequest.getString("name")));
+            list.add(new Discipline(disciplineRequest.getInt("id"), disciplineRequest.getString("name"), null));
         }
 
         return list;
@@ -795,21 +924,6 @@ public class SQLHandler {
 //        return test;
 //    }
 
-    public static TeacherEditableTest getTestTeacherDraft(int testId, int userId) throws SQLException {
-        //List<Discipline> disciplines, Discipline discipline,
-        //List<Task> tasks, List<Group> groups, List<Group> allGroups
-        TeacherEditableTest test = null;
-        ResultSet testRequest = connection.createStatement()
-                .executeQuery(("""
-                        SELECT tests.id, tests.time, tests.is_draft, tests.id_owner, tests.name, FROM tests
-                        INNER JOIN tests_disciplines ON tests_disciplines.id_test = tests.id
-                        INNER JOIN discipline ON discipline.id = tests_disciplines.id_discipline
-                        INNER JOIN reports ON reports.id_test = tests.id
-                        WHERE tests.id_owner='%d' AND tests.id='%d'
-                                """.formatted(userId, testId)));
-        List<Discipline> disciplines = new ArrayList<>();
-    }
-
     public static UserInfo getUserInfo(int userId) throws SQLException {
         ResultSet rs = connection.createStatement()
                 .executeQuery(("""
@@ -854,12 +968,14 @@ public class SQLHandler {
     private static int getLastInsertId() throws SQLException {
         return getOneRowExecuteQuery("SELECT LAST_INSERT_ID();").getInt(1);
     }
+
     public static void removeTask(int testId, int taskId) throws SQLException {
         connection.createStatement()
                 .executeUpdate(("""
                         DELETE FROM tasks WHERE tasks.id = '%d' AND tasks.id_test = '%d';
                                 """.formatted(taskId, testId)));
     }
+
     private static ResultSet getOneRowExecuteQuery(String sql) throws SQLException {
         ResultSet rs = connection.createStatement().executeQuery(sql);
         rs.next();
@@ -918,7 +1034,7 @@ public class SQLHandler {
     public int addUpdateIndicator(Indicator indicator) throws SQLException {
         // проверка наличия компетенции по id
         if (!statementExecuteQuery("SELECT * FROM idCompetence WHERE id=%d LIMIT 1;"
-                .formatted(indicator.idCompetence())).next()) {
+                .formatted(indicator.competence())).next()) {
             new DatabaseError();
             throw new SQLException(); // TODO: 30.07.2023 сделать автодополненние sub_id
         }
@@ -926,13 +1042,13 @@ public class SQLHandler {
         if (indicator.id() == null) {
             // add
             statementExecute("INSERT INTO indicators (name, sub_id, id_competence) VALUES ('%s', %d, %d);"
-                    .formatted(indicator.name(), indicator.subId(), indicator.idCompetence()));
+                    .formatted(indicator.name(), indicator.subId(), indicator.competence()));
 
             return getLastInsertId();
         } else if (indicator.id() > 0) {
             // update
             statementExecute("UPDATE indicators SET name='%s', sub_id=%d, id_competence=%d WHERE id=%d;"
-                    .formatted(indicator.name(), indicator.subId(), indicator.idCompetence(), indicator.id()));
+                    .formatted(indicator.name(), indicator.subId(), indicator.competence(), indicator.id()));
 
             return indicator.id();
         } else {

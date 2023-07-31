@@ -61,14 +61,18 @@ const testSlice = createSlice({
                     state.score = action.payload.test.result;
                     break;
                 case "draft":
-                    state.name = action.payload.test.name;
-                    state.duration = action.payload.test.duration;
+                    if (state.name !== action.payload.test.name)
+                        state.name = action.payload.test.name;
+                    if (state.duration !== action.payload.test.duration)
+                        state.duration = action.payload.test.duration;
                     state.discipline = action.payload.test.discipline;
-                    state.idDiscipline = action.payload.test.idDiscipline;
+                    if (state.idDiscipline !== action.payload.test.idDiscipline)
+                        state.idDiscipline = action.payload.test.idDiscipline;
                     if (JSON.stringify(state.tasks) !== JSON.stringify(action.payload.test.tasks))
                         state.tasks = action.payload.test.tasks;
                     state.disciplines = action.payload.test.disciplines;
-                    state.groups = action.payload.test.groups;
+                    if (JSON.stringify(state.groups) !== JSON.stringify(action.payload.test.groups))
+                        state.groups = action.payload.test.groups;
                     state.groupsAll = action.payload.test.groupsAll;
                     state.indicators = action.payload.test.indicators;
 
@@ -130,17 +134,40 @@ const testSlice = createSlice({
             }
         },
         setIndicators: (state, action) => {
-            let taskIndex = state.tasks.findIndex((item) => item.id == action.payload.taskId);
+            let taskIndex = state.tasks.findIndex((item) => item.id === action.payload.taskId);
             if (taskIndex || taskIndex !== -1) {
                 state.tasks[taskIndex].indicators = action.payload.data;
+            }
+        },
+        changeRadioButtonVal: (state, action) => {
+            let taskIndex = state.tasks.findIndex((item) => item.id === action.payload.taskId);
+            if (taskIndex || taskIndex !== -1) {
+                let questionIndex = state.tasks[taskIndex].questionPull.findIndex((item) => item.id === action.payload.questionId);
+                if (questionIndex || questionIndex !== -1) {
+                    state.tasks[taskIndex].questionPull[questionIndex].text = action.payload.data;
+                }
             }
         }
     }
 });
 
 export const {
-    setTestFetching, setTestData, setTestAnswer, clearTimerID, setTimerID, updateTimerVal, setTestFetchError, setInputTimerID,
-    setTestName, setGroups, setDiscipline, setDuration, setTaskAnswer, setTaskDescription, setIndicators
+    setTestFetching,
+    setTestData,
+    setTestAnswer,
+    clearTimerID,
+    setTimerID,
+    updateTimerVal,
+    setTestFetchError,
+    setInputTimerID,
+    setTestName,
+    setGroups,
+    setDiscipline,
+    setDuration,
+    setTaskAnswer,
+    setTaskDescription,
+    setIndicators,
+    changeRadioButtonVal
 } = testSlice.actions;
 
 export default testSlice.reducer;

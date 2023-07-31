@@ -98,6 +98,8 @@ let Test = props => {
     } else if (state === "draft") {
         return <EditableTest testData={props.testData} testFuncs={props.testFuncs} mainlistData={props.mainlistData}
                               mainlistFuncs={props.mainlistFuncs}/>
+    } else {
+        return <div>Мы ещё работаем над этим!</div>
     }
 }
 

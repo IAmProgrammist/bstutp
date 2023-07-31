@@ -11,8 +11,6 @@ let EditableTest = props => {
     let baseURL = window.location.origin;
     const navigate = useNavigate();
 
-    console.log(props);
-
     let {
         name,
         endTime,
@@ -48,7 +46,8 @@ let EditableTest = props => {
         setDuration,
         setTaskDescription,
         setTaskAnswer,
-        setIndicators
+        setIndicators,
+        changeRadioButtonVal
     } = props.testFuncs;
 
     let {
@@ -67,7 +66,7 @@ let EditableTest = props => {
         setListFetching, setUserData
     } = props.mainlistFuncs;
 
-    /*useEffect(() => {
+    useEffect(() => {
         clearTimeout(inputDataTimerID);
         setInputTimerID(setTimeout(() => {
             clearTimeout(inputDataTimerID);
@@ -75,18 +74,24 @@ let EditableTest = props => {
             setInputTimerID(null);
 
             let updates = {
-                "tasks": tasks.map((task) => {
+                tasks: tasks.map((task) => {
                     return task.taskType === "text" ? {
+                            taskId: task.id,
+                            description: task.description,
                             taskType: task.taskType,
-                            idReportDetailed: task.idReportDetailed,
-                            answer: task.answer
+                            answerCorrect: task.answerCorrect,
+                            indicators: task.indicators
                         } :
                         task.taskType === "one_in_many" ? {
+                            taskId: task.id,
+                            description: task.description,
                             taskType: task.taskType,
-                            idReportDetailed: task.idReportDetailed,
-                            idAnswer: task.idAnswer
+                            idAnswerCorrect: task.idAnswerCorrect,
+                            indicators: task.indicators,
+                            questionPull: task.questionPull
                         } : null;
-                }).filter(el => el !== null)
+                }).filter(el => el !== null),
+                name, duration, groups, idDiscipline, idTest: new URL(window.location.href).searchParams.get("id_test")
             };
 
             fetch(baseURL + "/api/tests/update",
@@ -138,7 +143,7 @@ let EditableTest = props => {
                     console.error(res.stack);
                 });
         }, 3000));
-    }, [tasks]);*/
+    }, [tasks, name, duration, groups, idDiscipline]);
 
     let tasksIterator = (tasks) => {
         if (tasks)
@@ -161,9 +166,12 @@ let EditableTest = props => {
                             {task.questionPull.map((question) =>
                                 <div className={"test__task_question"}>
                                     <input type={"radio"} name={"one_in_many" + task.id}
-                                           checked={question.id === task.idAnswerCorrect}/>
+                                           checked={question.id === task.idAnswerCorrect} onClick={
+                                        (ev) => setTaskAnswer(task.id, question.id)
+                                    } key={question.id}/>
                                     <label htmlFor={"one_in_many" + task.id}><input type={"text"}
-                                                                                    value={question.text}/>
+                                                                                    value={question.text}
+                                    onChange={(ev) => changeRadioButtonVal(task.id, question.id, ev.target.value)}/>
                                         <button className={"button test__task_delete_variant"} onClick={() => {
                                             clearTimeout(inputDataTimerID);
                                             setInputTimerID(null);
@@ -284,7 +292,8 @@ let EditableTest = props => {
                                         console.error("Vlad please fix this, something really bad happened");
                                         console.error(res.stack);
                                     })
-                            }}>Добавить</button>
+                            }}>Добавить
+                            </button>
                         </div>
 
                         :
@@ -432,12 +441,197 @@ let EditableTest = props => {
                     }}>Отправить
                     </button>
                     <button className={"button test__task_button test__task_button_save"} onClick={() => {
+                        clearTimeout(inputDataTimerID);
+                        setTestFetching(true);
+                        setInputTimerID(null);
+
+                        let updates = {
+                            tasks: tasks.map((task) => {
+                                return task.taskType === "text" ? {
+                                        taskId: task.id,
+                                        description: task.description,
+                                        taskType: task.taskType,
+                                        answerCorrect: task.answerCorrect,
+                                        indicators: task.indicators
+                                    } :
+                                    task.taskType === "one_in_many" ? {
+                                        taskId: task.id,
+                                        description: task.description,
+                                        taskType: task.taskType,
+                                        idAnswerCorrect: task.idAnswerCorrect,
+                                        indicators: task.indicators,
+                                        questionPull: task.questionPull
+                                    } : null;
+                            }).filter(el => el !== null),
+                            name, duration, groups, idDiscipline, idTest: new URL(window.location.href).searchParams.get("id_test")
+                        };
+
+                        fetch(baseURL + "/api/tests/update",
+                            {
+                                method: 'POST',
+                                headers: {
+                                    'Accept': 'application/json',
+                                    'Content-Type': 'application/json'
+                                },
+                                credentials: "include",
+                                body: JSON.stringify(updates)
+                            })
+                            .then(res => {
+                                setTestFetching(false);
+                                res.json();
+                            })
+                            .then(res => {
+                                setTestFetching(true);
+
+                                fetch(baseURL + "/api/tests/test?id_test=" + new URL(window.location.href).searchParams.get("id_test"), {
+                                    method: 'GET',
+                                    headers: {
+                                        'Accept': 'application/json',
+                                        'Content-Type': 'application/json'
+                                    },
+                                    credentials: "include"
+                                })
+                                    .then(res => {
+                                        setTestFetching(false);
+
+                                        return res.json();
+                                    })
+                                    .then(res => {
+                                        setTestFetching(false);
+                                        setUserData(res);
+                                        setTestData(res);
+                                    })
+                                    .catch(res => {
+                                        setTestFetching(false);
+                                        setTestFetchError(true);
+                                        console.error("Vlad please fix this, something really bad happened");
+                                        console.error(res.stack);
+                                    })
+                            })
+                            .catch(res => {
+                                setTestFetching(false);
+                                setTestFetchError(true);
+                                console.error("Vlad please fix this, something really bad happened");
+                                console.error(res.stack);
+                            });
                     }}>Сохранить
                     </button>
-                    <button className={"button test__task_button test__task_button_save"} onClick={() => {
+                    <button className={"button test__task_button"} onClick={() => {
+                        clearTimeout(inputDataTimerID);
+                        setInputTimerID(null);
+                        setListFetching(true);
+
+                        fetch(baseURL + "/api/tests/tasks/create", {
+                            method: 'POST',
+                            headers: {
+                                'Accept': 'application/json',
+                                'Content-Type': 'application/json'
+                            },
+                            credentials: "include",
+                            body: JSON.stringify({
+                                idTest: +new URL(window.location.href).searchParams.get("id_test"),
+                                testType: "one_in_many"
+                            })
+                        })
+                            .then(res => {
+                                setListFetching(false);
+
+                                if (res.ok) {
+                                    setListFetching(true);
+
+                                    fetch(baseURL + "/api/tests/test?id_test=" + new URL(window.location.href).searchParams.get("id_test"), {
+                                        method: 'GET',
+                                        headers: {
+                                            'Accept': 'application/json',
+                                            'Content-Type': 'application/json'
+                                        },
+                                        credentials: "include"
+                                    })
+                                        .then(res => {
+                                            setListFetching(false);
+
+                                            return res.json();
+                                        })
+                                        .then(res => {
+                                            setListFetching(false);
+                                            setUserData(res);
+                                            setTestData(res);
+                                        })
+                                        .catch(res => {
+                                            setListFetching(false);
+                                            console.error("Vlad please fix this, something really bad happened");
+                                            console.error(res.stack);
+                                        })
+                                }
+
+                                return res.json();
+                            })
+                            .then(res => {
+                            })
+                            .catch(res => {
+                                setListFetching(false);
+                                console.error("Vlad please fix this, something really bad happened");
+                                console.error(res.stack);
+                            })
                     }}>Добавить задание "один из"
                     </button>
-                    <button className={"button test__task_button test__task_button_save"} onClick={() => {
+                    <button className={"button test__task_button"} onClick={() => {
+                        clearTimeout(inputDataTimerID);
+                        setInputTimerID(null);
+                        setListFetching(true);
+
+                        fetch(baseURL + "/api/tests/tasks/create", {
+                            method: 'POST',
+                            headers: {
+                                'Accept': 'application/json',
+                                'Content-Type': 'application/json'
+                            },
+                            credentials: "include",
+                            body: JSON.stringify({
+                                idTest: +new URL(window.location.href).searchParams.get("id_test"),
+                                testType: "text"
+                            })
+                        })
+                            .then(res => {
+                                setListFetching(false);
+
+                                if (res.ok) {
+                                    setListFetching(true);
+
+                                    fetch(baseURL + "/api/tests/test?id_test=" + new URL(window.location.href).searchParams.get("id_test"), {
+                                        method: 'GET',
+                                        headers: {
+                                            'Accept': 'application/json',
+                                            'Content-Type': 'application/json'
+                                        },
+                                        credentials: "include"
+                                    })
+                                        .then(res => {
+                                            setListFetching(false);
+
+                                            return res.json();
+                                        })
+                                        .then(res => {
+                                            setListFetching(false);
+                                            setUserData(res);
+                                            setTestData(res);
+                                        })
+                                        .catch(res => {
+                                            setListFetching(false);
+                                            console.error("Vlad please fix this, something really bad happened");
+                                            console.error(res.stack);
+                                        })
+                                }
+
+                                return res.json();
+                            })
+                            .then(res => {
+                            })
+                            .catch(res => {
+                                setListFetching(false);
+                                console.error("Vlad please fix this, something really bad happened");
+                                console.error(res.stack);
+                            })
                     }}>Добавить задание открытого типа
                     </button>
                 </div>
