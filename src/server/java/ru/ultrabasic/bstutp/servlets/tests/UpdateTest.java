@@ -76,7 +76,7 @@ public class UpdateTest extends HttpServlet {
                 int testId = jsonStart.getInt("idTest");
                 String name = jsonStart.getString("name");
                 Long duration = jsonStart.getLong("duration");
-                int idDiscipline = jsonStart.getInt("idDiscipline");
+                Integer idDiscipline = jsonStart.get("idDiscipline") == JSONObject.NULL ? null : jsonStart.getInt("idDiscipline");
                 List<Integer> groups = new ArrayList<>();
                 JSONArray gArray = jsonStart.getJSONArray("groups");
                 for (int i = 0; i < gArray.length(); i++) {
@@ -96,7 +96,7 @@ public class UpdateTest extends HttpServlet {
 
                     if (task.getString("taskType").equals("text")) {
                         SQLHandler.updateTextTask(task.getInt("taskId"),
-                                task.getString("description"), task.get("answerCorrect") == JSONObject.NULL ? "" :task.getString("answerCorrect"), indicators);
+                                task.getString("description"), task.get("answerCorrect") == JSONObject.NULL ? "" : task.getString("answerCorrect"), indicators);
                     } else if (task.getString("taskType").equals("one_in_many")) {
                         JSONArray bank = task.getJSONArray("questionPull");
                         for (int j = 0; j < bank.length(); j++) {

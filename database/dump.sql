@@ -1,5 +1,3 @@
-CREATE DATABASE  IF NOT EXISTS `tester` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
-USE `tester`;
 -- MySQL dump 10.13  Distrib 8.0.34, for Win64 (x86_64)
 --
 -- Host: localhost    Database: tester
@@ -523,11 +521,11 @@ DROP TABLE IF EXISTS `tasks_one_in_many_task_questions`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `tasks_one_in_many_task_questions` (
   `id_task` int NOT NULL,
-  `id_question` int NOT NULL,
+  `id_question` int DEFAULT NULL,
   KEY `tasks_one_in_many_task_questions_tasks_idx` (`id_task`),
   KEY `tasks_one_in_many_task_questions_bank_idx` (`id_question`),
-  CONSTRAINT `tasks_one_in_many_task_questions_bank` FOREIGN KEY (`id_question`) REFERENCES `tasks_one_in_many_questions_bank` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `tasks_one_in_many_task_questions_tasks` FOREIGN KEY (`id_task`) REFERENCES `tasks` (`id`)
+  CONSTRAINT `tasks_one_in_many_task_questions_bank` FOREIGN KEY (`id_question`) REFERENCES `tasks_one_in_many_questions_bank` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `tasks_one_in_many_task_questions_tasks` FOREIGN KEY (`id_task`) REFERENCES `tasks` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -727,7 +725,7 @@ DROP TABLE IF EXISTS `tests_disciplines`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `tests_disciplines` (
   `id_test` int NOT NULL,
-  `id_discipline` int NOT NULL,
+  `id_discipline` int DEFAULT NULL,
   KEY `tests_disciplines_id_test_tests_id_idx` (`id_test`),
   KEY `tests_disciplines_id_discipline_discipline_id_idx` (`id_discipline`),
   CONSTRAINT `tests_disciplines_id_discipline_discipline_id` FOREIGN KEY (`id_discipline`) REFERENCES `discipline` (`id`) ON DELETE CASCADE,
@@ -835,4 +833,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2023-07-29 13:48:05
+-- Dump completed on 2023-07-31  9:14:12
