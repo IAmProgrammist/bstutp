@@ -41,7 +41,7 @@ public class FinishTest extends HttpServlet {
             JSONObject jsonStart = new JSONObject(req.getReader().lines().collect(Collectors.joining(System.lineSeparator())));
             int testId = jsonStart.getInt("idTest");
 
-            TestManager.finishTest(testId, userId);
+            TestManager.finishTest(userId, testId);
             new TestFinishedManually().writeToResponse(resp);
         } catch (SQLException e) {
             new DatabaseError().writeToResponse(resp);

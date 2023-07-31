@@ -233,7 +233,33 @@ let List = props => {
                 userInfo={headerName} onUserClick={() => {
             navigate("/profile");
         }} onAddClicked={() => {
-            console.log("Здесь мы будем добавлять тест!")
+            setListFetching(true);
+
+            fetch(baseURL + "/api/tests/create", {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                credentials: "include"
+            })
+                .then(res => {
+                    setListFetching(false);
+                    if (!res.ok)
+                        navigate("/login");
+
+                    return res.json();
+                })
+                .then(res => {
+                    let testId = res.testId;
+                    navigate("/test?id_test=" + testId);
+                    setListFetching(false);
+                })
+                .catch(res => {
+                    setListFetching(false);
+                    console.error("Vlad please fix this, something really bad happened");
+                    console.error(res.stack);
+                })
         }}/>
 
         <section>

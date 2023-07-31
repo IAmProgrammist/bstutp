@@ -11,7 +11,9 @@ import org.json.JSONObject;
 import ru.ultrabasic.bstutp.data.SQLHandler;
 import ru.ultrabasic.bstutp.data.models.TestState;
 import ru.ultrabasic.bstutp.data.models.UserInfo;
+import ru.ultrabasic.bstutp.data.models.UserTypes;
 import ru.ultrabasic.bstutp.messages.errors.DatabaseError;
+import ru.ultrabasic.bstutp.messages.errors.InvalidParameter;
 import ru.ultrabasic.bstutp.messages.errors.JSONError;
 import ru.ultrabasic.bstutp.messages.errors.SessionKeyInvalid;
 import ru.ultrabasic.bstutp.messages.success.OKMessage;
@@ -20,8 +22,8 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.stream.Collectors;
 
-@WebServlet("/api/tests/release")
-public class ReleaseTest extends HttpServlet {
+@WebServlet("/api/tests/create")
+public class CreateTest extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         try {
@@ -40,14 +42,17 @@ public class ReleaseTest extends HttpServlet {
             if (userInfo == null || userInfo.userType == null)
                 throw new SQLException();
 
-            JSONObject jsonStart = new JSONObject(req.getReader().lines().collect(Collectors.joining(System.lineSeparator())));
-            int testId = jsonStart.getInt("idTest");
+            if (userInfo.userType != UserTypes.STUDENT) {
+                int testId = SQLHandler.newTest(userId);
 
-            if (SQLHandler.getState(userId, testId) == TestState.DRAFT)
-                SQLHandler.releaseTest(testId);
+                JSONObject obj = new JSONObject();
+                obj.put("testId", testId);
 
-
-            new OKMessage().writeToResponse(resp);
+                resp.getWriter().println(obj);
+                resp.setStatus(200);
+            } else {
+                new InvalidParameter().writeToResponse(resp);
+            }
         } catch (SQLException e) {
             new DatabaseError().writeToResponse(resp);
         } catch (JSONException e) {

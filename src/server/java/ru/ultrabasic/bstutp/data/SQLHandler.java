@@ -47,6 +47,7 @@ public class SQLHandler {
         }
     }
 
+
     public void delUser(int idUser) throws SQLException {
         UserTypes userType = userType(idUser);
         if (userType == UserTypes.STUDENT) {
@@ -174,7 +175,7 @@ public class SQLHandler {
                         INNER JOIN students ON users.id = students.id_user\s
                         INNER JOIN teaching_groups ON teaching_groups.id = students.id_group\s
                         INNER JOIN tests_groups ON tests_groups.id_group = students.id_group\s
-                        INNER JOIN tests ON tests_groups.id_group = tests.id\s
+                        INNER JOIN tests ON tests_groups.id_test = tests.id\s
                         INNER JOIN tests_disciplines ON tests_disciplines.id_test = tests.id\s
                         INNER JOIN discipline ON tests_disciplines.id_discipline = discipline.id\s
                         INNER JOIN reports ON tests.id = reports.id_test\s
@@ -198,7 +199,7 @@ public class SQLHandler {
                         INNER JOIN students ON users.id = students.id_user
                         INNER JOIN teaching_groups ON teaching_groups.id = students.id_group
                         INNER JOIN tests_groups ON tests_groups.id_group = students.id_group
-                        INNER JOIN tests ON tests_groups.id_group = tests.id
+                        INNER JOIN tests ON tests_groups.id_test = tests.id
                         INNER JOIN tests_disciplines ON tests_disciplines.id_test = tests.id
                         INNER JOIN discipline ON tests_disciplines.id_discipline = discipline.id
                         LEFT JOIN reports ON tests.id = reports.id_test
@@ -222,10 +223,10 @@ public class SQLHandler {
                         INNER JOIN students ON users.id = students.id_user
                         INNER JOIN teaching_groups ON teaching_groups.id = students.id_group
                         INNER JOIN tests_groups ON tests_groups.id_group = students.id_group
-                        INNER JOIN tests ON tests_groups.id_group = tests.id
+                        INNER JOIN tests ON tests_groups.id_test = tests.id
                         INNER JOIN tests_disciplines ON tests_disciplines.id_test = tests.id
                         INNER JOIN discipline ON tests_disciplines.id_discipline = discipline.id
-                        INNER JOIN reports ON tests.id = reports.id_test
+                        LEFT JOIN reports ON tests.id = reports.id_test
                         WHERE users.id='%d' AND %d < reports.completion_time AND tests.is_draft=0
                                 """.formatted(userId, new Date().getTime())
                 ));
@@ -266,8 +267,8 @@ public class SQLHandler {
                         SELECT tests.id, tests.name, tests.time, discipline.name FROM users\s
                         INNER JOIN teacher ON teacher.id_user = users.id\s
                         INNER JOIN tests ON tests.id_owner = users.id\s
-                        INNER JOIN tests_disciplines ON tests_disciplines.id_test = tests.id\s
-                        INNER JOIN discipline ON tests_disciplines.id_discipline = discipline.id\s
+                        LEFT JOIN tests_disciplines ON tests_disciplines.id_test = tests.id\s
+                        LEFT JOIN discipline ON tests_disciplines.id_discipline = discipline.id\s
                         WHERE users.id='%d' AND tests.is_draft = 1;
                                 """.formatted(userId)
                 ));
@@ -276,7 +277,7 @@ public class SQLHandler {
 
         while (rs.next())
             tests.add(new TestShort(rs.getInt(1), rs.getString(2), rs.getLong(3),
-                    rs.getString(4), 0.0, false));
+                    rs.getString(4) == null ? "" : rs.getString(4), 0.0, false));
 
         return tests;
     }
@@ -334,7 +335,15 @@ public class SQLHandler {
                                 """.formatted(new Date().getTime(), userId, testId)));
     }
 
-    public static void updateTestHeader(int testId, String name, Long duration, int idDiscipline, List<Integer> groups) throws SQLException {
+
+    public static void releaseTest(int testId) throws SQLException {
+        connection.createStatement()
+                .executeUpdate(("""
+                        UPDATE tests SET is_draft = 0 WHERE tests.id=%d;
+                                """.formatted(testId)));
+    }
+
+    public static void updateTestHeader(int testId, String name, Long duration, Integer idDiscipline, List<Integer> groups) throws SQLException {
         connection.createStatement()
                 .executeUpdate(("""
                         UPDATE tests SET name = '%s', time = %d WHERE tests.id=%d
@@ -345,10 +354,16 @@ public class SQLHandler {
                         DELETE FROM tests_disciplines WHERE tests_disciplines.id_test=%d
                                 """.formatted(testId)));
 
-        connection.createStatement()
-                .executeUpdate(("""
-                        INSERT INTO tests_disciplines(id_test, id_discipline) VALUES (%d, %d)
-                                """.formatted(testId, idDiscipline)));
+        if (idDiscipline != null)
+            connection.createStatement()
+                    .executeUpdate(("""
+                            INSERT INTO tests_disciplines(id_test, id_discipline) VALUES (%d, %d)
+                                    """.formatted(testId, idDiscipline)));
+        else
+            connection.createStatement()
+                    .executeUpdate(("""
+                            INSERT INTO tests_disciplines(id_test, id_discipline) VALUES (%d, NULL)
+                                    """.formatted(testId)));
 
         connection.createStatement()
                 .executeUpdate(("""
@@ -374,6 +389,16 @@ public class SQLHandler {
                 .executeUpdate(("""
                         INSERT INTO tasks_text(id_task, answer_correct) VALUES (%d, "")
                                 """.formatted(taskId)));
+    }
+
+    public static int newTest(int userId) throws SQLException {
+        connection.createStatement()
+                .executeUpdate(("""
+                        INSERT INTO tests(tests.time, tests.is_draft, tests.id_owner, tests.name) VALUES (900, 1, %d, 'Новый тест')
+                                """.formatted(userId)));
+        int testId = getLastInsertId();
+
+        return testId;
     }
 
     public static void updateTextTask(int taskId, String description, String answerCorrect, List<Integer> indicators) throws SQLException {
@@ -745,9 +770,8 @@ public class SQLHandler {
         ResultSet testRequest = connection.createStatement()
                 .executeQuery(("""
                         SELECT tests.id, tests.time, tests.is_draft, tests.id_owner, tests.name FROM tests
-                        INNER JOIN tests_disciplines ON tests_disciplines.id_test = tests.id
-                        INNER JOIN discipline ON discipline.id = tests_disciplines.id_discipline
-                        INNER JOIN reports ON reports.id_test = tests.id
+                        LEFT JOIN tests_disciplines ON tests_disciplines.id_test = tests.id
+                        LEFT JOIN discipline ON discipline.id = tests_disciplines.id_discipline
                         WHERE tests.id_owner='%d' AND tests.id='%d'
                                 """.formatted(userId, testId)));
         if (testRequest.next()) {

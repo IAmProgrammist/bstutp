@@ -171,7 +171,7 @@ let EditableTest = props => {
                                     } key={question.id}/>
                                     <label htmlFor={"one_in_many" + task.id}><input type={"text"}
                                                                                     value={question.text}
-                                    onChange={(ev) => changeRadioButtonVal(task.id, question.id, ev.target.value)}/>
+                                                                                    onChange={(ev) => changeRadioButtonVal(task.id, question.id, ev.target.value)}/>
                                         <button className={"button test__task_delete_variant"} onClick={() => {
                                             clearTimeout(inputDataTimerID);
                                             setInputTimerID(null);
@@ -438,6 +438,37 @@ let EditableTest = props => {
                 {tasksIterator(tasks)}
                 <div className={"test__task_buttons"}>
                     <button className={"button test__task_button test__task_button_send"} onClick={() => {
+                        clearTimeout(inputDataTimerID);
+                        setInputTimerID(null);
+                        setListFetching(true);
+
+                        fetch(baseURL + "/api/tests/release", {
+                            method: 'POST',
+                            headers: {
+                                'Accept': 'application/json',
+                                'Content-Type': 'application/json'
+                            },
+                            credentials: "include",
+                            body: JSON.stringify({
+                                idTest: +new URL(window.location.href).searchParams.get("id_test")
+                            })
+                        })
+                            .then(res => {
+                                setListFetching(false);
+
+                                if (res.ok) {
+                                    navigate("/tests");
+                                }
+
+                                return res.json();
+                            })
+                            .then(res => {
+                            })
+                            .catch(res => {
+                                setListFetching(false);
+                                console.error("Vlad please fix this, something really bad happened");
+                                console.error(res.stack);
+                            })
                     }}>Отправить
                     </button>
                     <button className={"button test__task_button test__task_button_save"} onClick={() => {
@@ -463,7 +494,11 @@ let EditableTest = props => {
                                         questionPull: task.questionPull
                                     } : null;
                             }).filter(el => el !== null),
-                            name, duration, groups, idDiscipline, idTest: new URL(window.location.href).searchParams.get("id_test")
+                            name,
+                            duration,
+                            groups,
+                            idDiscipline,
+                            idTest: new URL(window.location.href).searchParams.get("id_test")
                         };
 
                         fetch(baseURL + "/api/tests/update",
