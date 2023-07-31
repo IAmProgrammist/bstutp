@@ -15,6 +15,7 @@ html {
 body {
     min-height: 100%;
     min-width: 320px;
+    background-color: ghostwhite;
     font: 16px/1.5 'Roboto', sans-serif;
     color: #000;
     padding: 0;
@@ -78,6 +79,7 @@ h1 {
     background-color: white;
     border-color: #24292e;
     border-width: 1px;
+    margin: 5px;
 
     transition: all 0.2s;
 }

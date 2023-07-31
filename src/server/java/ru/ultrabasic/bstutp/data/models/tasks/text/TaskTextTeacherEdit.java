@@ -8,13 +8,13 @@ import ru.ultrabasic.bstutp.data.models.records.Indicator;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TaskTextTeacherEdit extends TaskTextStudentAnswer implements CorrectAnswer {
+public class TaskTextTeacherEdit extends TaskText implements CorrectAnswer {
     String correctAnswer;
     List<Indicator> indicators = new ArrayList<>();
 
-    public TaskTextTeacherEdit(int id, int order, String description, int ownerId, String answer, Integer idReportDetailed,
+    public TaskTextTeacherEdit(int id, int order, String description, int ownerId,
                                String correctAnswer, List<Indicator> indicators) {
-        super(id, order, description, ownerId, answer, idReportDetailed);
+        super(id, order, description, ownerId);
 
         this.correctAnswer = correctAnswer;
         this.indicators = indicators;
@@ -27,11 +27,7 @@ public class TaskTextTeacherEdit extends TaskTextStudentAnswer implements Correc
 
         JSONArray inds = new JSONArray();
         for (Indicator ind : indicators) {
-            JSONObject indJSON = new JSONObject();
-            indJSON.put("id", ind.id());
-            indJSON.put("subId", ind.subId());
-            indJSON.put("name", ind.name());
-            inds.put(indJSON);
+            inds.put(ind.id());
         }
         object.put("indicators", inds);
 

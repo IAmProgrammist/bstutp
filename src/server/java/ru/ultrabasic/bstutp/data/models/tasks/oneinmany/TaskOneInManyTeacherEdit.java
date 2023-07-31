@@ -14,10 +14,13 @@ public class TaskOneInManyTeacherEdit extends TaskOneInMany implements CorrectAn
     List<Indicator> indicators = new ArrayList<>();
 
     public TaskOneInManyTeacherEdit(int id, int order, String description, int ownerId,
-                                    List<TaskOneInManyQuestion> questionPull, List<Indicator> indicators) {
+                                    List<TaskOneInManyQuestion> questionPull, TaskOneInManyQuestion correctAnswer, List<Indicator> indicators) {
         super(id, order, description, ownerId, questionPull);
 
         this.indicators = indicators;
+        this.questionPull = questionPull;
+        if (questionPull.contains(correctAnswer))
+            this.correctAnswer = correctAnswer;
     }
 
     @Override
@@ -27,11 +30,7 @@ public class TaskOneInManyTeacherEdit extends TaskOneInMany implements CorrectAn
         object.put("idAnswerCorrect", correctAnswer == null ? JSONObject.NULL : correctAnswer.id());
         JSONArray inds = new JSONArray();
         for (Indicator ind : indicators) {
-            JSONObject indJSON = new JSONObject();
-            indJSON.put("id", ind.id());
-            indJSON.put("subId", ind.subId());
-            indJSON.put("name", ind.name());
-            inds.put(indJSON);
+            inds.put(ind.id());
         }
         object.put("indicators", inds);
 

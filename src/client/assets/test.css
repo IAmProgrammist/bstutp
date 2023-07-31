@@ -91,3 +91,38 @@
 input.test__answer {
     display: block;
 }
+
+.test__task_label {
+    margin-top: 5px;
+    font-weight: bold;
+    font-size: 20px;
+}
+
+.test__task_input {
+    display: block;
+    width: 100%;
+    max-width: 300px;
+}
+
+.test__task_deletebutton {
+    margin-top: 10px;
+    display: block;
+}
+
+.test__task_buttons > button {
+    margin-bottom: 30px;
+}
+
+textarea {
+    max-width: 500px;
+
+    width: 100%;
+}
+
+.test__task_one_in_many {
+    margin-bottom: 5px;
+}
+
+.test__task_question {
+    margin-bottom: 7px;
+}

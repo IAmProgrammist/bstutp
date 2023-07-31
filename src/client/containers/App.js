@@ -1,5 +1,6 @@
 import React from 'react';
 import {connect} from "react-redux";
+import tPicker from 'rsuite/dist/rsuite.min.css';
 import * as LoginFuncs from "../slices/loginReducer"
 import * as MainlistFuncs from "../slices/mainListReducer"
 import * as TestFuncs from "../slices/testReducer"
@@ -11,6 +12,7 @@ import {setErrorMail, setErrorPassword} from "../slices/loginReducer";
 import Header from "../elements/Header";
 import List from "./List";
 import Test from "./Test"
+import Redirector from "../elements/Redirector"
 
 let App = props => {
     return <div>
@@ -18,7 +20,7 @@ let App = props => {
         <Router>
             <Routes>
                 <Route exact path="/" element={
-                    <div>Hello World!</div>
+                    <Redirector/>
                     }/>
                 <Route exact path="/login" element={<div className="container">
                     <LoginRegisterScreen
@@ -75,11 +77,18 @@ let mapDispatchToProps = (dispatch) => {
             setTestData: (ev) => dispatch(TestFuncs.setTestData(ev)),
             setTestFetching: (fetching) => dispatch(TestFuncs.setTestFetching(fetching)),
             setTestAnswer: (taskId, answer) => dispatch(TestFuncs.setTestAnswer({data: answer, taskId})),
+            setTaskAnswer: (taskId, answer) => dispatch(TestFuncs.setTaskAnswer({data: answer, taskId})),
+            setIndicators: (taskId, inds) => dispatch(TestFuncs.setIndicators({data: inds, taskId})),
+            setTaskDescription: (taskId, answer) => dispatch(TestFuncs.setTaskDescription({data: answer, taskId})),
             clearTimerID: () => dispatch(TestFuncs.clearTimerID()),
             setTimerID: (timerID) => dispatch(TestFuncs.setTimerID(timerID)),
             updateTimerVal: () => dispatch(TestFuncs.updateTimerVal()),
             setTestFetchError: (val) => dispatch(TestFuncs.setTestFetchError(val)),
-            setInputTimerID: (val) => dispatch(TestFuncs.setInputTimerID(val))
+            setInputTimerID: (val) => dispatch(TestFuncs.setInputTimerID(val)),
+            setTestName: (val) => dispatch(TestFuncs.setTestName(val)),
+            setGroups: (val) => dispatch(TestFuncs.setGroups(val)),
+            setDiscipline: (val) => dispatch(TestFuncs.setDiscipline(val)),
+            setDuration: (val) => dispatch(TestFuncs.setDuration(val))
         }
     }
 }

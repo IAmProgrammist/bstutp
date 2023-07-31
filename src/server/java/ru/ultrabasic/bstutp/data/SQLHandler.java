@@ -2,16 +2,17 @@ package ru.ultrabasic.bstutp.data;
 
 import ru.ultrabasic.bstutp.Config;
 import ru.ultrabasic.bstutp.data.models.*;
+import ru.ultrabasic.bstutp.data.models.records.Group;
+import ru.ultrabasic.bstutp.data.models.records.Indicator;
 import ru.ultrabasic.bstutp.data.models.records.*;
 import ru.ultrabasic.bstutp.data.models.tasks.Task;
 import ru.ultrabasic.bstutp.data.models.tasks.TaskTypes;
-import ru.ultrabasic.bstutp.data.models.tasks.oneinmany.TaskOneInMany;
-import ru.ultrabasic.bstutp.data.models.tasks.oneinmany.TaskOneInManyQuestion;
-import ru.ultrabasic.bstutp.data.models.tasks.oneinmany.TaskOneInManyStudentAnswer;
-import ru.ultrabasic.bstutp.data.models.tasks.oneinmany.TaskOneInManyStudentAnswerWithCorrect;
+import ru.ultrabasic.bstutp.data.models.tasks.oneinmany.*;
 import ru.ultrabasic.bstutp.data.models.tasks.text.TaskText;
 import ru.ultrabasic.bstutp.data.models.tasks.text.TaskTextStudentAnswer;
 import ru.ultrabasic.bstutp.data.models.tasks.text.TaskTextStudentAnswerWithCorrect;
+import ru.ultrabasic.bstutp.data.models.records.Discipline;
+import ru.ultrabasic.bstutp.data.models.tasks.text.TaskTextTeacherEdit;
 import ru.ultrabasic.bstutp.data.models.tests.Report;
 import ru.ultrabasic.bstutp.data.models.tests.TeacherEditableTest;
 import ru.ultrabasic.bstutp.data.models.tests.Test;
@@ -610,6 +611,161 @@ public class SQLHandler {
         return null;
     }
 
+    public static TeacherEditableTest getTestTeacherDraft(int testId, int userId) throws SQLException {
+        //List<Task> tasks
+        TeacherEditableTest test = null;
+        ResultSet testRequest = connection.createStatement()
+                .executeQuery(("""
+                        SELECT tests.id, tests.time, tests.is_draft, tests.id_owner, tests.name FROM tests
+                        INNER JOIN tests_disciplines ON tests_disciplines.id_test = tests.id
+                        INNER JOIN discipline ON discipline.id = tests_disciplines.id_discipline
+                        INNER JOIN reports ON reports.id_test = tests.id
+                        WHERE tests.id_owner='%d' AND tests.id='%d'
+                                """.formatted(userId, testId)));
+        if (testRequest.next()) {
+            List<Discipline> disciplines = getDisciplines();
+            List<Group> allGroups = getGroups();
+
+            Discipline discipline = null;
+            List<Group> groups = new ArrayList<>();
+
+            ResultSet groupsRequest = connection.createStatement()
+                    .executeQuery(("""
+                            SELECT teaching_groups.id, teaching_groups.name, teaching_groups.id_direction FROM teaching_groups
+                            INNER JOIN tests_groups ON tests_groups.id_group = teaching_groups.id
+                            WHERE tests_groups.id_test=%d
+                                    """.formatted(testId)));
+
+            while (groupsRequest.next())
+                groups.add(new Group(groupsRequest.getInt(1), groupsRequest.getString(2), groupsRequest.getInt(3)));
+
+            ResultSet disciplineRequest = connection.createStatement()
+                    .executeQuery(("""
+                            SELECT discipline.id, discipline.name FROM discipline
+                            INNER JOIN tests_disciplines ON tests_disciplines.id_discipline = discipline.id
+                            WHERE tests_disciplines.id_test=%d
+                                    """.formatted(testId)));
+
+            if (disciplineRequest.next())
+                discipline = new Discipline(disciplineRequest.getInt("id"), disciplineRequest.getString("name"));
+
+            ResultSet tasksRequest = connection.createStatement()
+                    .executeQuery(("""
+                            SELECT tasks.task_type, tasks.id, tasks.order, tasks.description, tasks.id_owner,
+                            tasks_one_in_many.id_answer_correct, tasks_text.answer_correct FROM tasks
+                            LEFT JOIN tasks_text ON tasks_text.id_task = tasks.id
+                            LEFT JOIN tasks_one_in_many ON tasks_one_in_many.id_task = tasks.id
+                            WHERE tasks.id_test=%d ORDER BY tasks.order
+                                    """.formatted(testId)));
+
+            List<Task> tasks = new ArrayList<>();
+
+            while (tasksRequest.next()) {
+                List<Indicator> indicators = new ArrayList<>();
+                ResultSet indicatorsRequest = connection.createStatement()
+                        .executeQuery(("""
+                            SELECT indicators.id, indicators.name, indicators.sub_id, indicators.id_competence FROM indicators
+                            INNER JOIN tasks_indicators ON tasks_indicators.id_indicator = indicators.id
+                            WHERE tasks_indicators.id_task=%d
+                                    """.formatted(testId)));
+
+                while (indicatorsRequest.next()) {
+                    indicators.add(new Indicator(indicatorsRequest.getInt(1), indicatorsRequest.getInt(3),
+                            indicatorsRequest.getString(2), indicatorsRequest.getInt(4)));
+                }
+
+                TaskTypes tType = TaskTypes.fromID(tasksRequest.getInt(1));
+
+                if (tType == null)
+                    continue;
+
+                switch (tType) {
+                    case ONE_IN_MANY:
+                        Integer answerIdCorrect = tasksRequest.getInt(6);
+
+                        List<TaskOneInManyQuestion> questions = new ArrayList<>();
+
+                        ResultSet oneInManyQuestions = connection.createStatement()
+                                .executeQuery(("""
+                                            SELECT tasks_one_in_many_questions_bank.id, tasks_one_in_many_questions_bank.text FROM tasks
+                                            INNER JOIN tasks_one_in_many_task_questions ON tasks_one_in_many_task_questions.id_task = tasks.id
+                                            INNER JOIN tasks_one_in_many_questions_bank ON tasks_one_in_many_questions_bank.id = tasks_one_in_many_task_questions.id_question
+                                            WHERE tasks.id='%d'
+                                        """.formatted(tasksRequest.getInt(2))));
+
+                        while (oneInManyQuestions.next()) {
+                            TaskOneInManyQuestion question = new TaskOneInManyQuestion(oneInManyQuestions.getInt(1),
+                                    oneInManyQuestions.getString(2));
+
+                            questions.add(question);
+                        }
+
+                        tasks.add(new TaskOneInManyTeacherEdit(tasksRequest.getInt(2), tasksRequest.getInt(3),
+                                tasksRequest.getString(4), tasksRequest.getInt(5), questions,
+                                questions.stream().filter(el -> el.id() == answerIdCorrect).findFirst().orElseGet(() -> null), indicators));
+
+                        break;
+                    case TEXT:
+                        String answerCorrect = tasksRequest.getString(7);
+                        tasks.add(new TaskTextTeacherEdit(tasksRequest.getInt(2), tasksRequest.getInt(3),
+                                tasksRequest.getString(4), tasksRequest.getInt(5), answerCorrect, indicators));
+                        break;
+                }
+            }
+
+            return new TeacherEditableTest(testRequest.getInt(1), testRequest.getLong(2), disciplines,
+                    discipline, testRequest.getBoolean(3), testRequest.getInt(4), testRequest.getString(5),
+                    tasks, groups, allGroups, getIndicators());
+        }
+
+        return null;
+    }
+
+    public static List<Discipline> getDisciplines() throws SQLException {
+        ResultSet disciplineRequest = connection.createStatement()
+                .executeQuery(("""
+                        SELECT * FROM discipline;
+                                """));
+
+        List<Discipline> list = new ArrayList<>();
+        while (disciplineRequest.next()) {
+            list.add(new Discipline(disciplineRequest.getInt("id"), disciplineRequest.getString("name")));
+        }
+
+        return list;
+    }
+
+    public static List<Group> getGroups() throws SQLException {
+        ResultSet groupsRequest = connection.createStatement()
+                .executeQuery(("""
+                        SELECT * FROM teaching_groups;
+                                """));
+
+        List<Group> list = new ArrayList<>();
+        while (groupsRequest.next()) {
+            list.add(new Group(groupsRequest.getInt("id"), groupsRequest.getString("name"),
+                    groupsRequest.getInt("id_direction")));
+        }
+
+        return list;
+    }
+
+    public static List<Indicator> getIndicators() throws SQLException {
+        ResultSet groupsRequest = connection.createStatement()
+                .executeQuery(("""
+                        SELECT * FROM indicators;
+                                """));
+
+        List<Indicator> list = new ArrayList<>();
+        while (groupsRequest.next()) {
+            list.add(new Indicator(groupsRequest.getInt("id"), groupsRequest.getInt("sub_id"),
+                    groupsRequest.getString("name"),
+                    groupsRequest.getInt("id_competence")));
+        }
+
+        return list;
+    }
+
 //    public Test getTest(int idTest) throws SQLException {
 //        int time = connection.createStatement().executeQuery(
 //                "SELECT time FROM tests WHERE id=%d LIMIT 1;"
@@ -698,12 +854,38 @@ public class SQLHandler {
     private static int getLastInsertId() throws SQLException {
         return getOneRowExecuteQuery("SELECT LAST_INSERT_ID();").getInt(1);
     }
-
+    public static void removeTask(int testId, int taskId) throws SQLException {
+        connection.createStatement()
+                .executeUpdate(("""
+                        DELETE FROM tasks WHERE tasks.id = '%d' AND tasks.id_test = '%d';
+                                """.formatted(taskId, testId)));
+    }
     private static ResultSet getOneRowExecuteQuery(String sql) throws SQLException {
         ResultSet rs = connection.createStatement().executeQuery(sql);
         rs.next();
-
         return rs;
+    }
+
+    public static void oneInManyRemoveQuestion(int taskId, int questionId) throws SQLException {
+        connection.createStatement()
+                .executeUpdate(("""
+                        DELETE FROM tasks_one_in_many_task_questions WHERE tasks_one_in_many_task_questions.id_task = '%d' 
+                        AND tasks_one_in_many_task_questions.id_question = '%d';
+                                """.formatted(taskId, questionId)));
+    }
+
+
+    public static void oneInManyAddQuestion(int taskId) throws SQLException {
+        connection.createStatement()
+                .executeUpdate(("""
+                        INSERT INTO tasks_one_in_many_questions_bank(text) VALUES ("");
+                                """));
+
+        int id = getLastInsertId();
+        connection.createStatement()
+                .executeUpdate(("""
+                        INSERT INTO tasks_one_in_many_task_questions(id_task, id_question) VALUES (%d, %d);
+                                """.formatted(taskId, id)));
     }
 
     private static void statementExecute(String sql) throws SQLException {

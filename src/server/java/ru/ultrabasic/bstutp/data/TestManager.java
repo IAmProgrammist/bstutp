@@ -29,6 +29,7 @@ public class TestManager {
                 break;
             case DRAFT:
                 TeacherEditableTest teacherTest = SQLHandler.getTestTeacherDraft(testId, userId);
+                testInfo.put("test", teacherTest.getJSONObject());
                 break;
             case ACTIVE:
                 // Edit for teacher

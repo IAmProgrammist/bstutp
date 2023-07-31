@@ -12,7 +12,12 @@ const initialState = {
     timerVal: "00:00",
     isFetchingError: false,
     inputDataTimerID: null,
-    score: 0.0
+    score: 0.0,
+    idDiscipline: null,
+    disciplines: [],
+    groups: [],
+    groupsAll: [],
+    indicators: []
 };
 
 const testSlice = createSlice({
@@ -55,6 +60,19 @@ const testSlice = createSlice({
                     state.endTime = action.payload.test.completionTime;
                     state.score = action.payload.test.result;
                     break;
+                case "draft":
+                    state.name = action.payload.test.name;
+                    state.duration = action.payload.test.duration;
+                    state.discipline = action.payload.test.discipline;
+                    state.idDiscipline = action.payload.test.idDiscipline;
+                    if (JSON.stringify(state.tasks) !== JSON.stringify(action.payload.test.tasks))
+                        state.tasks = action.payload.test.tasks;
+                    state.disciplines = action.payload.test.disciplines;
+                    state.groups = action.payload.test.groups;
+                    state.groupsAll = action.payload.test.groupsAll;
+                    state.indicators = action.payload.test.indicators;
+
+                    break;
             }
         },
         setTestAnswer: (state, action) => {
@@ -81,12 +99,48 @@ const testSlice = createSlice({
         },
         setInputTimerID: (state, action) => {
             state.inputDataTimerID = action.payload;
+        },
+        setTestName: (state, action) => {
+            state.name = action.payload;
+        },
+        setGroups: (state, action) => {
+            state.groups = action.payload;
+        },
+        setDiscipline: (state, action) => {
+            state.idDiscipline = action.payload;
+        },
+        setDuration: (state, action) => {
+            state.duration = new Number(action.payload.split(":")[0]) * 3600 +
+                new Number(action.payload.split(":")[1]) * 60 +
+                new Number(action.payload.split(":")[2]);
+        },
+        setTaskAnswer: (state, action) => {
+            let taskIndex = state.tasks.findIndex((item) => item.id == action.payload.taskId);
+            if (taskIndex || taskIndex !== -1) {
+                if (state.tasks[taskIndex].taskType === "text")
+                    state.tasks[taskIndex].answerCorrect = action.payload.data;
+                else if (state.tasks[taskIndex].taskType === "one_in_many")
+                    state.tasks[taskIndex].idAnswerCorrect = action.payload.data;
+            }
+        },
+        setTaskDescription: (state, action) => {
+            let taskIndex = state.tasks.findIndex((item) => item.id == action.payload.taskId);
+            if (taskIndex || taskIndex !== -1) {
+                state.tasks[taskIndex].description = action.payload.data;
+            }
+        },
+        setIndicators: (state, action) => {
+            let taskIndex = state.tasks.findIndex((item) => item.id == action.payload.taskId);
+            if (taskIndex || taskIndex !== -1) {
+                state.tasks[taskIndex].indicators = action.payload.data;
+            }
         }
     }
 });
 
 export const {
-    setTestFetching, setTestData, setTestAnswer, clearTimerID, setTimerID, updateTimerVal, setTestFetchError, setInputTimerID
+    setTestFetching, setTestData, setTestAnswer, clearTimerID, setTimerID, updateTimerVal, setTestFetchError, setInputTimerID,
+    setTestName, setGroups, setDiscipline, setDuration, setTaskAnswer, setTaskDescription, setIndicators
 } = testSlice.actions;
 
 export default testSlice.reducer;
