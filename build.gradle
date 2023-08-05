@@ -1,115 +1,25 @@
 plugins {
-    id 'java'
-    id 'war'
-    id 'org.springframework.boot' version '3.1.1'
-    id "com.github.node-gradle.node" version "5.0.0"
+	id 'java'
+	id 'org.springframework.boot' version '3.1.2'
+	id 'io.spring.dependency-management' version '1.1.2'
 }
 
-group 'bstutp'
+group = 'ru.ultrabasic'
+version = '0.0.1-SNAPSHOT'
 
-sourceCompatibility = 17
-compileJava.options.encoding = "UTF-8"
-compileTestJava.options.encoding = "UTF-8"
-
-node {
-    download = true
-    version = "18.16.1"
-    npmVersion = "9.5.1"
-}
-
-// Вместе с компиляцией Java стоит скомпилировать весь проект. Включая клиент
-compileJava.dependsOn npm_run_build
-
-// Мы - свои худшие враги
-// Поэтому так как у нас поменялся main на server, приходится танцевать с бубном
-apply plugin: 'war'
-
-war {
-    // Указываем где лежит webapp
-    webAppDirName = 'src/server/java/webapp'
+java {
+	sourceCompatibility = '17'
 }
 
 repositories {
-    mavenCentral()
+	mavenCentral()
 }
 
-sourceSets {
-
-    // Разделение тестов на юнит и интеграционные привело к тому что у нас теперь три папки
-    // integration-test содержит тесты интеграционные
-    webTest {
-        java.srcDir "$projectDir/src/web-test/java"
-        resources.srcDir "$projectDir/src/web-test/resources"
-        compileClasspath += main.output + test.output
-        runtimeClasspath += main.output + test.output
-    }
-
-    // main поменялся на server
-    main {
-        java {
-            srcDir 'src/server/java'
-        }
-        resources {
-            srcDir 'src/server/resources'
-        }
-    }
-
-    // test на server-unit-tests
-    test {
-        java {
-            srcDir 'src/server-unit-test/java'
-        }
-        resources {
-            srcDir 'src/server-unit-test/resources'
-        }
-    }
-}
-
-// Наследуем зависимости от нормальных тестов test к нашим самопальным интеграционным
-configurations {
-    webTestImplementation.extendsFrom testImplementation
-    webTestRuntime.extendsFrom testRuntime
-    webTestCompileOnly.extendsFrom testCompileOnly
-    webTestAnnotationProcessor.extendsFrom testAnnotationProcessor
-}
-
-// Зависимости
 dependencies {
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.7.0'
-    webTestImplementation 'org.junit.jupiter:junit-jupiter:5.7.0'
-    webTestImplementation 'com.codeborne:selenide:6.12.2'
-    webTestImplementation 'com.github.javafaker:javafaker:1.0.2'
-
-    compileOnly 'org.projectlombok:lombok:1.18.28'
-    annotationProcessor 'org.projectlombok:lombok:1.18.28'
-
-    testCompileOnly 'org.projectlombok:lombok:1.18.28'
-    testAnnotationProcessor 'org.projectlombok:lombok:1.18.28'
-
-    webTestCompileOnly 'org.projectlombok:lombok:1.18.28'
-    webTestAnnotationProcessor 'org.projectlombok:lombok:1.18.28'
-
-    implementation 'jakarta.servlet:jakarta.servlet-api:6.0.0'
-    implementation 'org.json:json:20230618'
-    implementation 'com.mysql:mysql-connector-j:8.1.0'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
-// Регистрируем интеграционные тесты как отдельную задачу
-tasks.register('webTest', Test) {
-    testClassesDirs = sourceSets.webTest.output.classesDirs
-    classpath = sourceSets.webTest.runtimeClasspath
-}
-
-// Включили в check интеграционные тесты. Не знаю зачем, но в туторе сказали надо
-check.dependsOn webTest
-
-// Тут всё просто
-test {
-    useJUnitPlatform()
-}
-
-// Интеграционные тесты работают с Selenide, поэтому важно в нём обеспечить headless режим
-webTest {
-    useJUnitPlatform()
-    systemProperty 'selenide.headless', System.getProperty('selenide.headless')
+tasks.named('test') {
+	useJUnitPlatform()
 }

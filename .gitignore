@@ -1,11 +1,9 @@
-apache-tomcat-10.1.11
-
 HELP.md
 .gradle
 build/
 !gradle/wrapper/gradle-wrapper.jar
-!**/src/main/**
-!**/src/test/**
+!**/src/main/**/build/
+!**/src/test/**/build/
 
 ### STS ###
 .apt_generated
@@ -15,6 +13,9 @@ build/
 .settings
 .springBeans
 .sts4-cache
+bin/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
 
 ### IntelliJ IDEA ###
 .idea
@@ -22,6 +23,8 @@ build/
 *.iml
 *.ipr
 out/
+!**/src/main/**/out/
+!**/src/test/**/out/
 
 ### NetBeans ###
 /nbproject/private/
@@ -32,50 +35,3 @@ out/
 
 ### VS Code ###
 .vscode/
-
-### Package Files ###
-*.jar
-*.war
-*.nar
-*.ear
-*.zip
-*.tar.gz
-*.rar
-
-
-/node_modules
-/test/js
-/test/browsertest/js
-/test/fixtures/temp-*
-/test/temp
-/test/ChangesAndRemovals
-/test/**/dev-defaults.webpack.lock
-/benchmark/js
-/benchmark/fixtures
-/examples/**/dist
-/assembly/**/*.wat
-/assembly/**/*.wasm
-/coverage
-/.nyc_output
-/.jest-cache
-.DS_Store
-*.log
-.vscode
-.cache
-.eslintcache
-package-lock.json
-
-# Virtualenv
-# http://iamzed.com/2009/05/07/a-primer-on-virtualenv/
-.Python
-[Bb]in
-[Ii]nclude
-[Ll]ib
-[Ll]ib64
-[Ll]ocal
-[Ss]cripts
-pyvenv.cfg
-.venv
-pip-selfcheck.json
-/apache-tomcat-10.1.11/
-/apache-tomcat-10.1.11/
