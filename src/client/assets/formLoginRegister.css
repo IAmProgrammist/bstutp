@@ -1,0 +1,17 @@
+.loginform__panel {
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+}
+
+.container__loginform {
+    position: fixed;
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-left: 20px;
+    padding-right: 20px;
+}

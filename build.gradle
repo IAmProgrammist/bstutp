@@ -2,6 +2,7 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.1.2'
 	id 'io.spring.dependency-management' version '1.1.2'
+	id "com.github.node-gradle.node" version "5.0.0"
 }
 
 group = 'ru.ultrabasic'
@@ -16,10 +17,34 @@ repositories {
 }
 
 dependencies {
+	implementation 'mysql:mysql-connector-java:8.0.33'
+
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+	compileOnly 'org.projectlombok:lombok:1.18.28'
+	annotationProcessor 'org.projectlombok:lombok:1.18.28'
+
+	testCompileOnly 'org.projectlombok:lombok:1.18.28'
+	testAnnotationProcessor 'org.projectlombok:lombok:1.18.28'
 }
 
 tasks.named('test') {
 	useJUnitPlatform()
 }
+
+sourceCompatibility = 17
+compileJava.options.encoding = "UTF-8"
+compileTestJava.options.encoding = "UTF-8"
+
+node {
+	download = true
+	version = "18.16.1"
+	npmVersion = "9.5.1"
+}
+
+// Вместе с компиляцией Java стоит скомпилировать весь проект. Включая клиент
+compileJava.dependsOn npm_run_build
+
